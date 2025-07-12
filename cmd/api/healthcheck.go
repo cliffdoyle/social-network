@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"net/http"
 )
 
@@ -18,4 +19,13 @@ func (app *application) healthcheckHandler(w http.ResponseWriter, r *http.Reques
 	// 	http.Error(w,"The server encountered a problem and not process your request",http.StatusInternalServerError)
 	app.serverErrorResponse(w,r,err)
 	}
+}
+
+func (app *application) errorTest(w http.ResponseWriter,r *http.Request){
+	if r.Method != http.MethodGet {
+		app.methodNotAllowedResponse(w, r)
+		return
+	}
+	err:=fmt.Errorf("simulated server error")
+	app.serverErrorResponse(w,r,err)
 }
