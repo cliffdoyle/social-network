@@ -11,7 +11,7 @@ import (
 
 func (app *application) writeJSON(w http.ResponseWriter, status int, data any)error{
 	//Encode the data to JSON, returning the error if there is one
-	js,err:=json.Marshal(data)
+	js,err:=json.MarshalIndent(data,"","\t")
 	if err !=nil{
 		return  err
 	}
