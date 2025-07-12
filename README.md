@@ -1,0 +1,1 @@
+### setup basic http server with one endpoint that returns basic information about the API we are building
