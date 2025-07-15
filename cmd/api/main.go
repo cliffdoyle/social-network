@@ -1,11 +1,14 @@
 package main
 
 import (
+	"database/sql"
 	"flag"
 	"fmt"
 	"log/slog"
 	"net/http"
 	"os"
+
+	_ "github.com/mattn/go-sqlite3"
 )
 
 // Config struct to hold the configuration settings for the application
@@ -23,6 +26,7 @@ type config struct {
 type application struct {
 	config config
 	logger *slog.Logger
+	db     *sql.DB
 }
 
 func main() {
@@ -39,33 +43,43 @@ func main() {
 	//Initialize a new structured logger which writes log entries to the standard output stream
 	logger := slog.New(slog.NewTextHandler(os.Stdout, nil))
 
+	// Open SQLite database
+	db, err := sql.Open("sqlite3", "./social_network.db")
+	if err != nil {
+		logger.Error(err.Error())
+		os.Exit(1)
+	}
+	defer db.Close()
+
 	//Declare an instance of the application struct, containing the config struct and
 	//the logger
 	app := &application{
 		config: cfg,
 		logger: logger,
+		db:     db,
 	}
 
 	//Declare new servemux which dispatches requests to
 	//our currently single handler method
 	mux := http.NewServeMux()
-	mux.HandleFunc("/healthcheck",app.healthcheckHandler)
-	mux.HandleFunc("/test",app.errorTest)
+	mux.HandleFunc("/healthcheck", app.healthcheckHandler)
+	mux.HandleFunc("/test", app.errorTest)
+	mux.HandleFunc("/update-privacy", app.updatePrivacyHandler)
 
 	//Declare a HTTP server which listens on the port provided in the config struct,
-	//uses the servemux created above as the handler and writes any 
+	//uses the servemux created above as the handler and writes any
 	//log messages to the structured logger at Error level
 
-	srv:=&http.Server{
-		Addr: fmt.Sprintf(":%d",cfg.port),
-		Handler: mux,
-		ErrorLog: slog.NewLogLogger(logger.Handler(),slog.LevelError),
+	srv := &http.Server{
+		Addr:     fmt.Sprintf(":%d", cfg.port),
+		Handler:  mux,
+		ErrorLog: slog.NewLogLogger(logger.Handler(), slog.LevelError),
 	}
 
 	//Start the HTTP server
-	logger.Info("starting server","addr",srv.Addr,"env",cfg.env)
+	logger.Info("starting server", "addr", srv.Addr, "env", cfg.env)
 
-	err:=srv.ListenAndServe()
+	err = srv.ListenAndServe()
 	logger.Error(err.Error())
 	os.Exit(1)
 }
