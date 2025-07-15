@@ -28,3 +28,4 @@ CREATE TRIGGER IF NOT EXISTS update_users_updated_at
 BEGIN
     UPDATE users SET updated_at = CURRENT_TIMESTAMP WHERE id = NEW.id;
 END;
+
