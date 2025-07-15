@@ -47,8 +47,7 @@ func (app *application) readJSON(w http.ResponseWriter, r *http.Request, dst any
 			return fmt.Errorf("body contains badly-formed JSON (at character %d)", syntaxError.Offset)
 		// In some circumstances Decode() may also return an io.ErrUnexpectedEOF error
 		// for syntax errors in the JSON. So we check for this using errors.Is() and
-		// return a generic error message. There is an open issue regarding this at
-		// https://github.com/golang/go/issues/25956.
+		// return a generic error message. 
 		case errors.Is(err, io.ErrUnexpectedEOF):
 			return errors.New("body contains badly-formed JSON")
 		// Likewise, catch any *json.UnmarshalTypeError errors. These occur when the
@@ -67,9 +66,7 @@ func (app *application) readJSON(w http.ResponseWriter, r *http.Request, dst any
 			return errors.New("body must not be empty")
 		// A json.InvalidUnmarshalError error will be returned if we pass something
 		// that is not a non-nil pointer to Decode(). We catch this and panic,
-		// rather than returning an error to our handler. At the end of this chapter
-		// we'll talk about panicking versus returning errors, and discuss why it's an
-		// appropriate thing to do in this specific situation.
+		// rather than returning an error to our handler. 
 		case errors.As(err, &invalidUnmarshalError):
 			panic(err)
 		// For anything else, return the error message as-is.
