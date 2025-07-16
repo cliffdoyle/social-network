@@ -1,4 +1,6 @@
 import { useState } from 'react'
+import styles from './LoginForm.module.css'
+
 
 // Component to render the user login form
 export default function LoginForm({ switchToRegister }) {
