@@ -1,37 +1,87 @@
-/* RegisterForm.module.css */
 .formContainer {
-  max-width: 450px;
-  margin: auto;
-  padding: 2rem;
-  border: 1px solid #ccc;
-  border-radius: 8px;
-  background-color: #fafafa;
+  max-width: 500px;
+  margin: 50px auto;
+  padding: 3rem 2rem;
+  background-color: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.06);
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+  
+.heading {
+  text-align: center;
+  margin-bottom: 1.5rem;
+  font-size: 1.8rem;
+  font-weight: 600;
+  color: #222;
 }
 
 .input {
   width: 100%;
-  margin-bottom: 12px;
-  padding: 10px;
-  border: 1px solid #ddd;
-  border-radius: 4px;
+  padding: 14px 16px;
+  margin-bottom: 18px;
+  font-size: 16px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  background-color: #f9fafb;
+  transition: all 0.3s ease;
+}
+
+.input:focus {
+  border-color: #3b82f6;
+  background-color: #fff;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.3);
+  outline: none;
+}
+
+textarea.input {
+  resize: vertical;
+  min-height: 100px;
 }
 
 .btn {
   width: 100%;
-  padding: 10px;
-  background-color: #0070f3;
+  padding: 14px;
+  background-color: #3b82f6;
   color: white;
-  font-weight: bold;
+  font-size: 16px;
+  font-weight: 600;
   border: none;
-  border-radius: 4px;
+  border-radius: 8px;
   cursor: pointer;
+  transition: background-color 0.3s ease;
 }
 
 .btn:hover {
-  background-color: #005bb5;
+  background-color: #2563eb;
 }
 
 .errorMessage {
-  color: red;
-  margin-top: 8px;
+  color: #b91c1c;
+  background-color: #fee2e2;
+  padding: 12px;
+  border: 1px solid #fecaca;
+  border-radius: 8px;
+  margin-bottom: 16px;
+  font-size: 15px;
+}
+
+.textLink {
+  color: #2563eb;
+  cursor: pointer;
+  font-weight: 500;
+  transition: color 0.2s ease;
+}
+
+.textLink:hover {
+  color: #1d4ed8;
+}
+
+.text {
+  font-size: 14px;
+  color: #333;
+  margin-top: 1rem;
+  text-align: center;
 }

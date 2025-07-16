@@ -33,7 +33,8 @@ export default function LoginForm({ switchToRegister }) {
 
   return (
     <form onSubmit={handleLogin} className={styles.formContainer}>
-  <h2>Login</h2>
+  <h2 className={styles.heading}>Login</h2>
+
 
   {/* Input for username or email */}
   <input
@@ -62,14 +63,15 @@ export default function LoginForm({ switchToRegister }) {
   <button className={styles.btn}>Login</button>
 
   {/* Forgot password and register link */}
+   {/* HAVE TO IMPLEMENT PROP FOR FORGOT PASSWORD<span onClick={forgotPassword} className={styles.link}> 
+  Forgot Password? </span> */}
   <p className={styles.link}>Forgot Password?</p>
 
-  <p>
-    Don’t have an account?{' '}
-    <span onClick={switchToRegister} className={styles.link}>
-      Register
-    </span>
-  </p>
+  <p className={styles.text}>
+  Don’t have an account?{' '}
+  <span onClick={switchToRegister} className={styles.link}> 
+    Register </span>
+</p>
 </form>
   )
 }

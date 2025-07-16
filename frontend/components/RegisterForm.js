@@ -64,8 +64,8 @@ export default function RegisterForm({ switchToLogin }) {
 
   return (
     <form onSubmit={handleSubmit} className={styles.formContainer}>
-    <h2>Register</h2>
-  
+    <h2 className={styles.heading}>Register</h2>
+
     <input name="firstName" onChange={handleChange} placeholder="First Name" required className={styles.input} />
     <input name="lastName" onChange={handleChange} placeholder="Last Name" required className={styles.input} />
     <input type="date" name="dob" onChange={handleChange} required className={styles.input} />
@@ -79,7 +79,7 @@ export default function RegisterForm({ switchToLogin }) {
     {error && <p className={styles.errorMessage}>{error}</p>}
   
     <button className={styles.btn}>Register</button>
-    <p>
+    <p className={styles.text}>
       Already have an account?{' '}
       <span onClick={switchToLogin} className={styles.textLink}>
         Login
