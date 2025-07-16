@@ -11,7 +11,7 @@ export default function LoginForm({ switchToRegister }) {
   const handleLogin = async (e) => {
     e.preventDefault()
 
-    // Send login credentials to backend
+    // Send login credentials to backend via the end point
     const res = await fetch('http://localhost:8080/login', {
       method: 'POST',
       credentials: 'include',
