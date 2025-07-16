@@ -16,7 +16,7 @@ func (app *application) rateLimit(next http.Handler)http.Handler{
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request){
 	//Call limiter.Allow() to see if the request is permitted, and if it's not,
 	//then call rateLimitExceededResponse() helper to return a 429 too many
-	//Requests response (we will create this helper in a minute)
+	//Requests response 
 	if !limiter.Allow(){
 		app.rateLimitExceededResponse(w,r)
 		return

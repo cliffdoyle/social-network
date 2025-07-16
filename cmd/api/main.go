@@ -8,6 +8,8 @@ import (
 	"os"
 
 	"github.com/cliffdoyle/social-network/internal/database"
+	"github.com/cliffdoyle/social-network/internal/repository"
+	"github.com/cliffdoyle/social-network/internal/service"
 	_ "github.com/mattn/go-sqlite3"
 )
 
@@ -29,6 +31,8 @@ type application struct {
 
 	// db     *sql.DB
 	db *database.DB // Add database connection
+	//Add the user service
+	services service.UserService
 }
 
 func main() {
@@ -57,14 +61,22 @@ func main() {
 		os.Exit(1)
 	}
 
-	//Declare an instance of the application struct, containing the config struct and
-	//the logger
+	//Initialize Repositories
+	userRepo := repository.NewUserRepository(db)
+
+	//Initialize Services
+	userService:=service.NewUserService(userRepo)
+
+	//Inject dependencies into the application struct
 	app := &application{
 		config: cfg,
 		logger: logger,
 
 		db: db,
-	}
+
+		//Inject the service
+		services: userService,
+	}	
 
 	//Declare new servemux which dispatches requests to
 	//our currently single handler method
