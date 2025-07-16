@@ -6,6 +6,8 @@ import (
 	"log/slog"
 	"net/http"
 	"os"
+
+	"github.com/cliffdoyle/social-network/internal/database"
 )
 
 // Config struct to hold the configuration settings for the application
@@ -23,6 +25,7 @@ type config struct {
 type application struct {
 	config config
 	logger *slog.Logger
+	db     *database.DB  // Add database connection
 }
 
 func main() {
@@ -39,34 +42,46 @@ func main() {
 	//Initialize a new structured logger which writes log entries to the standard output stream
 	logger := slog.New(slog.NewTextHandler(os.Stdout, nil))
 
+	// Initialize database connection with your existing database package
+	db, err := database.New(database.Config{
+		DatabasePath:   "./social_network.db",
+		MigrationsPath: "./internal/migrations",
+		MaxOpenConns:   25,
+		MaxIdleConns:   25,
+	})
+	if err != nil {
+		logger.Error("Failed to connect to database", "error", err)
+		os.Exit(1)
+	}
+
 	//Declare an instance of the application struct, containing the config struct and
 	//the logger
 	app := &application{
 		config: cfg,
 		logger: logger,
+		db:     db,  // Store database connection in app
 	}
 
 	//Declare new servemux which dispatches requests to
 	//our currently single handler method
 	mux := http.NewServeMux()
 	mux.HandleFunc("/healthcheck", app.healthcheckHandler)
-	mux.HandleFunc("/test", app.errorTest)
-	mux.HandleFunc("/api/v1/users/register", app.registerUserHandler)
+	mux.HandleFunc("/register", app.registerUserHandler)  // Simple /register endpoint
 
 	//Declare a HTTP server which listens on the port provided in the config struct,
 	//uses the servemux created above as the handler and writes any 
 	//log messages to the structured logger at Error level
 
-	srv:=&http.Server{
-		Addr: fmt.Sprintf(":%d",cfg.port),
-		Handler: mux,
-		ErrorLog: slog.NewLogLogger(logger.Handler(),slog.LevelError),
+	srv := &http.Server{
+		Addr:     fmt.Sprintf(":%d", cfg.port),
+		Handler:  mux,
+		ErrorLog: slog.NewLogLogger(logger.Handler(), slog.LevelError),
 	}
 
 	//Start the HTTP server
-	logger.Info("starting server","addr",srv.Addr,"env",cfg.env)
+	logger.Info("starting server", "addr", srv.Addr, "env", cfg.env)
 
-	err:=srv.ListenAndServe()
+	err = srv.ListenAndServe()
 	logger.Error(err.Error())
 	os.Exit(1)
 }
