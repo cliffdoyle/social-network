@@ -32,46 +32,44 @@ export default function LoginForm({ switchToRegister }) {
   }
 
   return (
-    <form onSubmit={handleLogin} className="space-y-4">
-      <h2 className="text-xl font-bold">Login</h2>
+    <form onSubmit={handleLogin} className={styles.formContainer}>
+  <h2>Login</h2>
 
-      {/* Input for username or email */}
-      <input
-        type="text"
-        placeholder="Username or Email"
-        value={emailOrUsername}
-        onChange={(e) => setEmailOrUsername(e.target.value)}
-        required
-        className="input"
-      />
+  {/* Input for username or email */}
+  <input
+    type="text"
+    placeholder="Username or Email"
+    value={emailOrUsername}
+    onChange={(e) => setEmailOrUsername(e.target.value)}
+    required
+    className={styles.input}
+  />
 
-      {/* Input for password */}
-      <input
-        type="password"
-        placeholder="Password"
-        value={password}
-        onChange={(e) => setPassword(e.target.value)}
-        required
-        className="input"
-      />
+  {/* Input for password */}
+  <input
+    type="password"
+    placeholder="Password"
+    value={password}
+    onChange={(e) => setPassword(e.target.value)}
+    required
+    className={styles.input}
+  />
 
-      {/* Error message */}
-      {error && <p className="text-red-500">{error}</p>}
+  {/* Error message */}
+  {error && <p className={styles.errorMessage}>{error}</p>}
 
-      {/* Submit button */}
-      <button className="btn">Login</button>
+  {/* Submit button */}
+  <button className={styles.btn}>Login</button>
 
-      {/* Forgot password and register link */}
-      <p className="text-sm text-right text-blue-600 cursor-pointer">
-        Forgot Password?
-      </p>
+  {/* Forgot password and register link */}
+  <p className={styles.link}>Forgot Password?</p>
 
-      <p>
-        Don't have an account?{' '}
-        <span onClick={switchToRegister} className="text-blue-600 cursor-pointer">
-          Register
-        </span>
-      </p>
-    </form>
+  <p>
+    Don’t have an account?{' '}
+    <span onClick={switchToRegister} className={styles.link}>
+      Register
+    </span>
+  </p>
+</form>
   )
 }
