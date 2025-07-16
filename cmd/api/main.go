@@ -9,6 +9,7 @@ import (
 	"os"
 
 	_ "github.com/mattn/go-sqlite3"
+	"github.com/cliffdoyle/social-network/internal/database"
 )
 
 // Config struct to hold the configuration settings for the application
@@ -26,7 +27,9 @@ type config struct {
 type application struct {
 	config config
 	logger *slog.Logger
+
 	db     *sql.DB
+	db     *database.DB  // Add database connection
 }
 
 func main() {
@@ -43,20 +46,27 @@ func main() {
 	//Initialize a new structured logger which writes log entries to the standard output stream
 	logger := slog.New(slog.NewTextHandler(os.Stdout, nil))
 
-	// Open SQLite database
-	db, err := sql.Open("sqlite3", "./social_network.db")
+
+	// Initialize database connection with your existing database package
+	db, err := database.New(database.Config{
+		DatabasePath:   "./social_network.db",
+		MigrationsPath: "./internal/migrations",
+		MaxOpenConns:   25,
+		MaxIdleConns:   25,
+	})
 	if err != nil {
-		logger.Error(err.Error())
+		logger.Error("Failed to connect to database", "error", err)
 		os.Exit(1)
 	}
-	defer db.Close()
 
 	//Declare an instance of the application struct, containing the config struct and
 	//the logger
 	app := &application{
 		config: cfg,
 		logger: logger,
+
 		db:     db,
+
 	}
 
 	//Declare new servemux which dispatches requests to
@@ -65,6 +75,9 @@ func main() {
 	mux.HandleFunc("/healthcheck", app.healthcheckHandler)
 	mux.HandleFunc("/test", app.errorTest)
 	mux.HandleFunc("/update-privacy", app.updatePrivacyHandler)
+
+	mux.HandleFunc("/register", app.registerUserHandler)  // Simple /register endpoint
+
 
 	//Declare a HTTP server which listens on the port provided in the config struct,
 	//uses the servemux created above as the handler and writes any
