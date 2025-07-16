@@ -1,5 +1,7 @@
 // components/RegisterForm.js
 import { useState } from 'react'
+import styles from './RegisterForm.module.css'
+
 
 // Component to render the user registration form
 export default function RegisterForm({ switchToLogin }) {
@@ -61,33 +63,28 @@ export default function RegisterForm({ switchToLogin }) {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-3">
-      <h2 className="text-xl font-bold">Register</h2>
-
-      {/* Input fields for required and optional info */}
-      <input name="firstName" onChange={handleChange} placeholder="First Name" required className="input" />
-      <input name="lastName" onChange={handleChange} placeholder="Last Name" required className="input" />
-      <input type="date" name="dob" onChange={handleChange} required className="input" />
-      <input type="email" name="email" onChange={handleChange} placeholder="Email" required className="input" />
-      <input type="password" name="password" onChange={handleChange} placeholder="Password" required className="input" />
-      <input type="password" name="confirmPassword" onChange={handleChange} placeholder="Confirm Password" required className="input" />
-
-      {/* Optional fields */}
-      <input type="file" name="avatar" onChange={handleChange} className="input" />
-      <input name="nickname" onChange={handleChange} placeholder="Nickname (optional)" className="input" />
-      <textarea name="about" onChange={handleChange} placeholder="About Me (optional)" className="input"></textarea>
-
-      {/* Error message display */}
-      {error && <p className="text-red-500">{error}</p>}
-
-      {/* Submit button and switch link */}
-      <button className="btn">Register</button>
-      <p>
-        Already have an account?{' '}
-        <span onClick={switchToLogin} className="text-blue-500 cursor-pointer">
-          Login
-        </span>
-      </p>
-    </form>
+    <form onSubmit={handleSubmit} className={styles.formContainer}>
+    <h2>Register</h2>
+  
+    <input name="firstName" onChange={handleChange} placeholder="First Name" required className={styles.input} />
+    <input name="lastName" onChange={handleChange} placeholder="Last Name" required className={styles.input} />
+    <input type="date" name="dob" onChange={handleChange} required className={styles.input} />
+    <input type="email" name="email" onChange={handleChange} placeholder="Email" required className={styles.input} />
+    <input type="password" name="password" onChange={handleChange} placeholder="Password" required className={styles.input} />
+    <input type="password" name="confirmPassword" onChange={handleChange} placeholder="Confirm Password" required className={styles.input} />
+    <input type="file" name="avatar" onChange={handleChange} className={styles.input} />
+    <input name="nickname" onChange={handleChange} placeholder="Nickname (optional)" className={styles.input} />
+    <textarea name="about" onChange={handleChange} placeholder="About Me (optional)" className={styles.input}></textarea>
+  
+    {error && <p className={styles.errorMessage}>{error}</p>}
+  
+    <button className={styles.btn}>Register</button>
+    <p>
+      Already have an account?{' '}
+      <span onClick={switchToLogin} className={styles.textLink}>
+        Login
+      </span>
+    </p>
+  </form>
   )
 }
