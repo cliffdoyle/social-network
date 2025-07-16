@@ -46,19 +46,13 @@ func main() {
 		logger: logger,
 	}
 
-	//Declare new servemux which dispatches requests to
-	//our currently single handler method
-	mux := http.NewServeMux()
-	mux.HandleFunc("/healthcheck",app.healthcheckHandler)
-	mux.HandleFunc("/test",app.errorTest)
-
 	//Declare a HTTP server which listens on the port provided in the config struct,
 	//uses the servemux created above as the handler and writes any 
 	//log messages to the structured logger at Error level
 
 	srv:=&http.Server{
 		Addr: fmt.Sprintf(":%d",cfg.port),
-		Handler: mux,
+		Handler: app.routes(),
 		ErrorLog: slog.NewLogLogger(logger.Handler(),slog.LevelError),
 	}
 
