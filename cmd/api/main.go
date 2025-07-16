@@ -49,8 +49,9 @@ func main() {
 	//Declare new servemux which dispatches requests to
 	//our currently single handler method
 	mux := http.NewServeMux()
-	mux.HandleFunc("/healthcheck",app.healthcheckHandler)
-	mux.HandleFunc("/test",app.errorTest)
+	mux.HandleFunc("/healthcheck", app.healthcheckHandler)
+	mux.HandleFunc("/test", app.errorTest)
+	mux.HandleFunc("/api/v1/users/register", app.registerUserHandler)
 
 	//Declare a HTTP server which listens on the port provided in the config struct,
 	//uses the servemux created above as the handler and writes any 
