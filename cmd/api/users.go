@@ -7,10 +7,10 @@ import (
 )
 
 func (app *application) registerUserHandler(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodPost {
-		app.methodNotAllowedResponse(w, r)
-		return
-	}
+	// if r.Method != http.MethodPost {
+	// 	app.methodNotAllowedResponse(w, r)
+	// 	return
+	// }
 
 	var input models.UserRegistrationRequest
 
