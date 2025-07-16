@@ -1,15 +1,14 @@
 package main
 
 import (
-	"database/sql"
 	"flag"
 	"fmt"
 	"log/slog"
 	"net/http"
 	"os"
 
-	_ "github.com/mattn/go-sqlite3"
 	"github.com/cliffdoyle/social-network/internal/database"
+	_ "github.com/mattn/go-sqlite3"
 )
 
 // Config struct to hold the configuration settings for the application
@@ -28,8 +27,8 @@ type application struct {
 	config config
 	logger *slog.Logger
 
-	db     *sql.DB
-	db     *database.DB  // Add database connection
+	// db     *sql.DB
+	db *database.DB // Add database connection
 }
 
 func main() {
@@ -45,7 +44,6 @@ func main() {
 
 	//Initialize a new structured logger which writes log entries to the standard output stream
 	logger := slog.New(slog.NewTextHandler(os.Stdout, nil))
-
 
 	// Initialize database connection with your existing database package
 	db, err := database.New(database.Config{
@@ -65,19 +63,11 @@ func main() {
 		config: cfg,
 		logger: logger,
 
-		db:     db,
-
+		db: db,
 	}
 
 	//Declare new servemux which dispatches requests to
 	//our currently single handler method
-	mux := http.NewServeMux()
-	mux.HandleFunc("/healthcheck", app.healthcheckHandler)
-	mux.HandleFunc("/test", app.errorTest)
-	mux.HandleFunc("/update-privacy", app.updatePrivacyHandler)
-
-	mux.HandleFunc("/register", app.registerUserHandler)  // Simple /register endpoint
-
 
 	//Declare a HTTP server which listens on the port provided in the config struct,
 	//uses the servemux created above as the handler and writes any
@@ -85,7 +75,7 @@ func main() {
 
 	srv := &http.Server{
 		Addr:     fmt.Sprintf(":%d", cfg.port),
-		Handler:  mux,
+		Handler:  app.routes(),
 		ErrorLog: slog.NewLogLogger(logger.Handler(), slog.LevelError),
 	}
 
