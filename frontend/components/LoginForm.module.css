@@ -1,0 +1,83 @@
+/* LoginForm.module.css */
+.formContainer {
+    max-width: 420px;
+    margin: 60px auto;
+    padding: 2.5rem 2rem;
+    background-color: #ffffff;
+    border-radius: 12px;
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  }
+  
+  .heading {
+    text-align: center;
+    margin-bottom: 1.5rem;
+    font-size: 1.6rem;
+    color: #222;
+  }
+  
+  
+  .input {
+    width: 100%;
+    padding: 12px 14px;
+    font-size: 15px;
+    margin-bottom: 14px;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    background-color: #f9fafb;
+    transition: border 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+  }
+  
+  .input:focus {
+    outline: none;
+    border-color: #0070f3;
+    box-shadow: 0 0 0 3px rgba(0, 112, 243, 0.1);
+    background-color: #fff;
+  }
+  
+  .btn {
+    width: 100%;
+    padding: 12px;
+    background-color: #0070f3;
+    color: #ffffff;
+    font-weight: 600;
+    font-size: 16px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background-color 0.2s ease-in-out;
+  }
+  
+  .btn:hover {
+    background-color: #0056c1;
+  }
+  
+  .errorMessage {
+    color: #dc2626;
+    background-color: #fee2e2;
+    padding: 8px 10px;
+    border-radius: 5px;
+    font-size: 14px;
+    margin-bottom: 12px;
+  }
+  
+  .link {
+    color: #2563eb;
+    cursor: pointer;
+    font-weight: 500;
+    transition: color 0.2s ease;
+  }
+  
+  .link:hover {
+    text-decoration: underline;
+  }
+  
+  .text {
+    font-size: 14px;
+    color: #333;
+    margin-top: 1rem;
+    text-align: center;
+  }
+ 
+  
