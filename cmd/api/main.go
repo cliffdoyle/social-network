@@ -8,6 +8,9 @@ import (
 	"os"
 
 	"github.com/cliffdoyle/social-network/internal/database"
+	"github.com/cliffdoyle/social-network/internal/repository"
+	"github.com/cliffdoyle/social-network/internal/service"
+	_ "github.com/mattn/go-sqlite3"
 )
 
 // Config struct to hold the configuration settings for the application
@@ -25,7 +28,11 @@ type config struct {
 type application struct {
 	config config
 	logger *slog.Logger
-	db     *database.DB  // Add database connection
+
+	// db     *sql.DB
+	db *database.DB // Add database connection
+	//Add the user service
+	services service.UserService
 }
 
 func main() {
@@ -54,27 +61,33 @@ func main() {
 		os.Exit(1)
 	}
 
-	//Declare an instance of the application struct, containing the config struct and
-	//the logger
+	//Initialize Repositories
+	userRepo := repository.NewUserRepository(db)
+
+	//Initialize Services
+	userService:=service.NewUserService(userRepo)
+
+	//Inject dependencies into the application struct
 	app := &application{
 		config: cfg,
 		logger: logger,
-		db:     db,  // Store database connection in app
-	}
+
+		db: db,
+
+		//Inject the service
+		services: userService,
+	}	
 
 	//Declare new servemux which dispatches requests to
 	//our currently single handler method
-	mux := http.NewServeMux()
-	mux.HandleFunc("/healthcheck", app.healthcheckHandler)
-	mux.HandleFunc("/register", app.registerUserHandler)  // Simple /register endpoint
 
 	//Declare a HTTP server which listens on the port provided in the config struct,
-	//uses the servemux created above as the handler and writes any 
+	//uses the servemux created above as the handler and writes any
 	//log messages to the structured logger at Error level
 
 	srv := &http.Server{
 		Addr:     fmt.Sprintf(":%d", cfg.port),
-		Handler:  mux,
+		Handler:  app.routes(),
 		ErrorLog: slog.NewLogLogger(logger.Handler(), slog.LevelError),
 	}
 
