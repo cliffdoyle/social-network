@@ -1,7 +1,11 @@
 {
   "compilerOptions": {
     "paths": {
+<<<<<<< HEAD
       "@/*": ["./*"]
+=======
+      "@/*": ["./src/*"]
+>>>>>>> feat/auth
     }
   }
 }
