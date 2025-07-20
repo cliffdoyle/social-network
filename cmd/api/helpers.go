@@ -32,8 +32,19 @@ func (app *application) writeJSON(w http.ResponseWriter, status int, data any) e
 }
 
 func (app *application) readJSON(w http.ResponseWriter, r *http.Request, dst any) error {
+	// Use http.MaxBytesReader() to limit the size of the request body to 1,048,576
+	// bytes (1MB).
+	r.Body = http.MaxBytesReader(w, r.Body, 1_048_576)
+
+	// Initialize the json.Decoder, and call the DisallowUnknownFields() method on it
+	// before decoding. This means that if the JSON from the client now includes any
+	// field which cannot be mapped to the target destination, the decoder will return
+	// an error instead of just ignoring the field.
+	dec:=json.NewDecoder(r.Body)
+	dec.DisallowUnknownFields()
+
 	// Decode the request body into the target destination.
-	err := json.NewDecoder(r.Body).Decode(dst)
+	err := dec.Decode(dst)
 	if err != nil {
 		// If there is an error during decoding, start the triage...
 		var syntaxError *json.SyntaxError
