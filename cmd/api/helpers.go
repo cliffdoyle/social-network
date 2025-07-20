@@ -40,7 +40,7 @@ func (app *application) readJSON(w http.ResponseWriter, r *http.Request, dst any
 	// before decoding. This means that if the JSON from the client now includes any
 	// field which cannot be mapped to the target destination, the decoder will return
 	// an error instead of just ignoring the field.
-	dec:=json.NewDecoder(r.Body)
+	dec := json.NewDecoder(r.Body)
 	dec.DisallowUnknownFields()
 
 	// Decode the request body into the target destination.
@@ -50,6 +50,9 @@ func (app *application) readJSON(w http.ResponseWriter, r *http.Request, dst any
 		var syntaxError *json.SyntaxError
 		var unmarshalTypeError *json.UnmarshalTypeError
 		var invalidUnmarshalError *json.InvalidUnmarshalError
+
+		// Add a new maxBytesError variable.
+		var maxBytesError *http.MaxBytesError
 		switch {
 		// Use the errors.As() function to check whether the error has the type
 		// *json.SyntaxError. If it does, then return a plain-english error message
@@ -58,7 +61,7 @@ func (app *application) readJSON(w http.ResponseWriter, r *http.Request, dst any
 			return fmt.Errorf("body contains badly-formed JSON (at character %d)", syntaxError.Offset)
 		// In some circumstances Decode() may also return an io.ErrUnexpectedEOF error
 		// for syntax errors in the JSON. So we check for this using errors.Is() and
-		// return a generic error message. 
+		// return a generic error message.
 		case errors.Is(err, io.ErrUnexpectedEOF):
 			return errors.New("body contains badly-formed JSON")
 		// Likewise, catch any *json.UnmarshalTypeError errors. These occur when the
@@ -75,9 +78,15 @@ func (app *application) readJSON(w http.ResponseWriter, r *http.Request, dst any
 		// instead.
 		case errors.Is(err, io.EOF):
 			return errors.New("body must not be empty")
-		// A json.InvalidUnmarshalError error will be returned if we pass something
-		// that is not a non-nil pointer to Decode(). We catch this and panic,
-		// rather than returning an error to our handler. 
+			// A json.InvalidUnmarshalError error will be returned if we pass something
+			// that is not a non-nil pointer to Decode(). We catch this and panic,
+			// rather than returning an error to our handler.
+
+			// Use the errors.As() function to check whether the error has the type
+			// *http.MaxBytesError. If it does, then it means the request body exceeded our
+			// size limit of 1MB and we return a clear error message.
+		case errors.As(err, &maxBytesError):
+			return fmt.Errorf("body must not be larger than %d bytes", maxBytesError.Limit)
 		case errors.As(err, &invalidUnmarshalError):
 			panic(err)
 		// For anything else, return the error message as-is.
