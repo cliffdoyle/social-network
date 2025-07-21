@@ -12,11 +12,13 @@ import (
 // for user-related business logic
 type UserService interface {
 	Register(input *models.UserRegistrationRequest) (*models.User, *validator.Validator, error)
+	
 }
 
 // userService struct implements the UserService interface
 type userService struct {
 	repo repository.UserRepository
+	
 }
 
 // NewUserService creates a new instance of the userService
