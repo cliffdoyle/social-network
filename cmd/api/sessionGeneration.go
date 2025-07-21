@@ -1,11 +1,10 @@
 package main
 
 import (
+	"context"
 	"encoding/json"
 	"net/http"
 	"time"
-
-	"github.com/gofrs/uuid"
 )
 
 func (app *application) Authenticator(next http.Handler) http.Handler {
@@ -23,20 +22,22 @@ func (app *application) Authenticator(next http.Handler) http.Handler {
 				Path:    "/",
 				Expires: time.Unix(0, 0),
 			})
+			http.Redirect(w, r, "/login", http.StatusSeeOther)
+			return
 		}
-		http.Redirect(w, r, "/login", http.StatusSeeOther)
-		return
+		ctx := context.WithValue(r.Context(), "user_id", session.UserID)
+		ctx = context.WithValue(ctx, "session_id", session.SessionID)
+		next.ServeHTTP(w, r.WithContext(ctx))
 	})
 }
 
 func (app *application) GenerateSession(w http.ResponseWriter, r http.Request, id string) {
-	sessionID := uuid.NewV4()
 	sessionID, err := app.sessionService.PersistSession(id)
 	if err != nil {
 		json.NewEncoder(w).Encode(map[string]any{
 			"message": "failed to save token",
 			"status":  http.StatusInternalServerError,
-		}) // function that saves the session to the database and returns its session
+		})
 		cookie := &http.Cookie{
 			Name:     "sessionID",
 			Value:    sessionID,
@@ -48,4 +49,9 @@ func (app *application) GenerateSession(w http.ResponseWriter, r http.Request, i
 
 		http.SetCookie(w, cookie)
 	}
+}
+
+func (app *application) LogOut(r *http.Request) {
+	sessionID:=r.Context().Value("sessionID").(string)
+	app.sessionService.DeleteSession(sessionID)
 }
