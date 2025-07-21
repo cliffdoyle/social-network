@@ -7,7 +7,7 @@ import (
 
 // Set calculates the bcrypt type to manage plaintext and hashed
 // passwords
-func (p *password) Set(plaintextPassword string) error {
+func (p *Password) Set(plaintextPassword string) error {
 	hash, err := bcrypt.GenerateFromPassword([]byte(plaintextPassword), 12)
 	if err != nil {
 		return err
@@ -19,7 +19,7 @@ func (p *password) Set(plaintextPassword string) error {
 
 // Matches checks if the provided plaintext password matches
 // the stored hashed password.
-func (p *password) Matches(plaintextPassword string) (bool, error) {
+func (p *Password) Matches(plaintextPassword string) (bool, error) {
 	err := bcrypt.CompareHashAndPassword(p.Hash, []byte(plaintextPassword))
 	if err != nil {
 		switch {
