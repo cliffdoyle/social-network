@@ -11,6 +11,7 @@ import (
 	"github.com/cliffdoyle/social-network/internal/repository"
 	"github.com/cliffdoyle/social-network/internal/service"
 	_ "github.com/mattn/go-sqlite3"
+	_"github.com/golang-migrate/migrate/v4"
 )
 
 // Config struct to hold the configuration settings for the application
