@@ -4,24 +4,20 @@ import (
 	"encoding/json"
 	"net/http"
 	"strings"
-)
-type LoginDetails struct{
-Email string `json:"email"`
-Password string `json:"password"`
-Csrf     string `json:"csrfToken"`
 
-}
+	"github.com/cliffdoyle/social-network/internal/models"
+)
 func(app *application)LoginHandler(w http.ResponseWriter,r *http.Request){
 	if r.Method!=http.MethodPost{
-        json.NewEncoder(w).Encode(map[string]any{
+		json.NewEncoder(w).Encode(map[string]any{
 			"message":"invalid request",
 			"code":http.StatusMethodNotAllowed,
 		})
 		return
 	}
 
-	var loginDetails LoginDetails
-	err:=json.NewDecoder(r.Body).Decode(&loginDetails)
+	var userRegistration *models.UserRegistrationRequest
+	err:=json.NewDecoder(r.Body).Decode(&userRegistration)
 	if err!=nil{
 		 json.NewEncoder(w).Encode(map[string]any{
 			"message":"invalid request",
@@ -30,37 +26,36 @@ func(app *application)LoginHandler(w http.ResponseWriter,r *http.Request){
 		return
 	}
  
-email:=strings.Trim(loginDetails.Email,"")
-password:=strings.Trim(loginDetails.Password,"")
+email:=strings.Trim(userRegistration.Email,"")
+password:=strings.Trim(userRegistration.Password,"")
 
 	if email==""||password==""{
 		json.NewEncoder(w).Encode(map[string]any{
 			"message":"invalid request",
-			"code":http.StatusMethodNotAllowed,
+			"code":http.StatusBadRequest,
 		})
 		return
 	}
 
 	// //Database call to get user by email
 
-	// user,err:=GetUserByEmail(loginDetails.Email)
-	// if err!=nil{
-	// 	json.NewEncoder(w).Encode(map[string]any{
-	// 		"message":"user does not exist.Please register",
-	// 		"code":http.StatusMethodNotAllowed,
-	// 	})
-	// 	return
-	// }
-
-
-	// //validate password
-	// if (!correctPassword){
-	// 	json.NewEncoder(w).Encode(map[string]any{
-	// 		"message":"user does not exist.Please register",
-	// 		"code":http.StatusMethodNotAllowed,
-	// 	})
-	// 	return
-	// }
+	user,_,err:=app.services.Register(userRegistration)
+	if err!=nil || user==nil{
+		json.NewEncoder(w).Encode(map[string]any{
+			"message":"user does not exist.Please register",
+			"code":http.StatusMethodNotAllowed,
+		})
+		return
+	}
+     var p *models.Password
+	valid,err:=p.Matches(password)
+	if err!=nil ||!valid{
+		json.NewEncoder(w).Encode(map[string]any{
+			"message":"incorrect credentials.Please try again",
+			"code":http.StatusMethodNotAllowed,
+		})
+		return
+	}
      
-	// app.GenerateSession(w,r,user.USERID)
+	app.GenerateSession(w,*r,user.ID)
 }
