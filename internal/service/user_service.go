@@ -12,6 +12,7 @@ import (
 // for user-related business logic
 type UserService interface {
 	Register(input *models.UserRegistrationRequest) (*models.User, *validator.Validator, error)
+	Login(input *models.LoginRequest)(*models.User,error)
 	
 }
 
@@ -93,4 +94,13 @@ func (s *userService) Register(input *models.UserRegistrationRequest) (*models.U
 
 	return user, nil, nil
 
+}
+
+func( s *userService)Login(input *models.LoginRequest)(*models.User, error){
+existingUser, err := s.repo.FindByEmail(input.Email)
+		if err != nil{
+			//database error occurred
+			return nil, err
+		}
+return existingUser,nil
 }
