@@ -16,8 +16,8 @@ func(app *application)LoginHandler(w http.ResponseWriter,r *http.Request){
 		return
 	}
 
-	var userRegistration *models.UserRegistrationRequest
-	err:=json.NewDecoder(r.Body).Decode(&userRegistration)
+	var loginDetails *models.LoginRequest
+	err:=json.NewDecoder(r.Body).Decode(&loginDetails)
 	if err!=nil{
 		 json.NewEncoder(w).Encode(map[string]any{
 			"message":"invalid request",
@@ -26,8 +26,8 @@ func(app *application)LoginHandler(w http.ResponseWriter,r *http.Request){
 		return
 	}
  
-email:=strings.Trim(userRegistration.Email,"")
-password:=strings.Trim(userRegistration.Password,"")
+email:=strings.Trim(loginDetails.Email,"")
+password:=strings.Trim(loginDetails.Password,"")
 
 	if email==""||password==""{
 		json.NewEncoder(w).Encode(map[string]any{
@@ -39,7 +39,7 @@ password:=strings.Trim(userRegistration.Password,"")
 
 	// //Database call to get user by email
 
-	user,_,err:=app.services.Register(userRegistration)
+	user,err:=app.services.Login(loginDetails)
 	if err!=nil || user==nil{
 		json.NewEncoder(w).Encode(map[string]any{
 			"message":"user does not exist.Please register",
