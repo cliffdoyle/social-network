@@ -23,7 +23,7 @@ func NewSessionRepository(db *database.DB) SessionRepository {
 
 func (r *sessionRepository) InsertSession(session *models.Sessions) (string, error) {
 	query := `
-        INSERT INTO sessions (sessionID,userID,Expires)
+        INSERT INTO sessions (sessionID,userID,expires_at)
         VALUES (?, ?, ?)
 		`
 
@@ -41,10 +41,10 @@ func (r *sessionRepository) InsertSession(session *models.Sessions) (string, err
 }
 
 func (r *sessionRepository) GetSessionID(id string) (*models.Sessions, error) {
-	query := `SELECT sessionID, userID, expires FROM Sessions WHERE id=?`
+	query := `SELECT sessionID, userID, expires_at FROM Sessions WHERE id=?`
 	row := r.DB.QueryRow(query, id)
 	var sess *models.Sessions
-	err := row.Scan(sess.SessionID, &sess.UserID, &sess.Expires)
+	err := row.Scan(&sess.SessionID, &sess.UserID, &sess.Expires)
 	if err != nil {
 		return nil, err
 	}

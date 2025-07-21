@@ -12,14 +12,12 @@ import (
 // for user-related business logic
 type UserService interface {
 	Register(input *models.UserRegistrationRequest) (*models.User, *validator.Validator, error)
-	Login(input *models.LoginRequest)(*models.User,error)
-	
+	Login(input *models.LoginRequest) (*models.User, error)
 }
 
 // userService struct implements the UserService interface
 type userService struct {
 	repo repository.UserRepository
-	
 }
 
 // NewUserService creates a new instance of the userService
@@ -57,7 +55,7 @@ func (s *userService) Register(input *models.UserRegistrationRequest) (*models.U
 	}
 
 	//Set and hash the password using the model's method
-	err = user.Password.Set(input.Password)
+	_, err = user.Password.Set(input.Password)
 	if err != nil {
 		//server error during hashing
 		return nil, nil, err
@@ -96,11 +94,11 @@ func (s *userService) Register(input *models.UserRegistrationRequest) (*models.U
 
 }
 
-func( s *userService)Login(input *models.LoginRequest)(*models.User, error){
-existingUser, err := s.repo.FindByEmail(input.Email)
-		if err != nil{
-			//database error occurred
-			return nil, err
-		}
-return existingUser,nil
+func (s *userService) Login(input *models.LoginRequest) (*models.User, error) {
+	existingUser, err := s.repo.FindByEmail(input.Email)
+	if err != nil {
+		//database error occurred
+		return nil, err
+	}
+	return existingUser, nil
 }

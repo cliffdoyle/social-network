@@ -1,20 +1,24 @@
 package models
 
 import (
+	"fmt"
+
 	"github.com/cliffdoyle/social-network/internal/validator"
 	"golang.org/x/crypto/bcrypt"
 )
 
 // Set calculates the bcrypt type to manage plaintext and hashed
 // passwords
-func (p *Password) Set(plaintextPassword string) error {
+func (p *Password) Set(plaintextPassword string) (*Password,error){
 	hash, err := bcrypt.GenerateFromPassword([]byte(plaintextPassword), 12)
 	if err != nil {
-		return err
+		return nil,err
 	}
 	p.Plaintext = &plaintextPassword
 	p.Hash = hash
-	return nil
+
+	fmt.Println("plaintext:",p)
+	return p,nil
 }
 
 // Matches checks if the provided plaintext password matches

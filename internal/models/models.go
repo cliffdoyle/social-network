@@ -8,7 +8,7 @@ import (
 type User struct {
 	ID            string    `json:"id" db:"id"`
 	Email         string    `json:"email" db:"email"`
-	Password      Password  `json:"-" db:"password_hash"` // Never include in JSON responses
+	Password      Password  `json:"Hash" db:"password_hash"` // Never include in JSON responses
 	FirstName     string    `json:"firstName" db:"first_name"`
 	LastName      string    `json:"lastName" db:"last_name"`
 	DateOfBirth   time.Time `json:"dateOfBirth" db:"date_of_birth"`
