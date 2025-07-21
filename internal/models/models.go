@@ -8,7 +8,7 @@ import (
 type User struct {
 	ID            string    `json:"id" db:"id"`
 	Email         string    `json:"email" db:"email"`
-	Password      password  `json:"-" db:"password_hash"` // Never include in JSON responses
+	Password      Password  `json:"-" db:"password_hash"` // Never include in JSON responses
 	FirstName     string    `json:"firstName" db:"first_name"`
 	LastName      string    `json:"lastName" db:"last_name"`
 	DateOfBirth   time.Time `json:"dateOfBirth" db:"date_of_birth"`
@@ -36,16 +36,11 @@ type UserRegistrationRequest struct {
 // versions of the password for a user. The plaintext field is a *pointer* to a string,
 // so that we're able to distinguish between a plaintext password not being present in
 // the struct at all, versus a plaintext password which is the empty string "".
-type password struct {
+type Password struct {
 	Plaintext *string
 	Hash      []byte
 }
 
-// UserLoginRequest represents the data needed to login
-type UserLoginRequest struct {
-	Email    string `json:"email" validate:"required,email"`
-	Password string `json:"password" validate:"required"`
-}
 
 // UserUpdateRequest represents the data that can be updated for a user
 type UserUpdateRequest struct {
@@ -138,7 +133,6 @@ type UserUpdateRequest struct {
 
 type Sessions struct {
 	SessionID string    `json:"sessionID"`
-	Token     string    `json:"sessionToken"`
-	CreatedAt time.Time `json:"createdAt" db:"created_at"`
-	Expires  time.Time
+	UserID string `json:"userID"`
+	Expires  time.Time `json:"expiryTime"`
 }
