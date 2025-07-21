@@ -12,6 +12,8 @@ func (app *application) routes() http.Handler {
 	router.HandlerFunc(http.MethodGet, "/v1/healthcheck", app.healthcheckHandler)
 	router.HandlerFunc(http.MethodPost, "/register", app.registerUserHandler)
 	router.HandlerFunc(http.MethodPost, "/update-privacy", app.updatePrivacyHandler)
+	router.HandlerFunc(http.MethodPost,"/login",app.LoginHandler)
+	
 	// mux.HandleFunc("/healthcheck", app.healthcheckHandler,app.registerUserHandler)
 	// mux.HandleFunc("/test", app.errorTest)
 	// mux.HandleFunc("/update-privacy", )
