@@ -6,3 +6,5 @@ CREATE TABLE IF NOT EXISTS sessions (
     FOREIGN KEY (userID) REFERENCES users (id)
 
 );
+
+ALTER TABLE sessions RENAME COLUMN created_at TO expires_at;
