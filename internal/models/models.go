@@ -131,6 +131,11 @@ type UserUpdateRequest struct {
 
 // }
 
+type LoginRequest struct{
+	Email       string `json:"email" validate:"required,email"`
+	Password    string `json:"password" validate:"required,min=6"`
+}
+
 type Sessions struct {
 	SessionID string    `json:"sessionID"`
 	UserID string `json:"userID"`
