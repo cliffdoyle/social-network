@@ -6,19 +6,19 @@ import (
 
 // User represents a user in the social network
 type User struct {
-	ID           string    `json:"id" db:"id"`
-	Email        string    `json:"email" db:"email"`
-	Password     password  `json:"-" db:"password_hash"` // Never include in JSON responses
-	FirstName    string    `json:"firstName" db:"first_name"`
-	LastName     string    `json:"lastName" db:"last_name"`
-	DateOfBirth  time.Time `json:"dateOfBirth" db:"date_of_birth"`
-	Nickname     *string   `json:"nickname,omitempty" db:"nickname"` // Optional field
-	AboutMe      *string   `json:"aboutMe,omitempty" db:"about_me"`  // Optional field
-	AvatarPath   *string   `json:"avatarPath,omitempty" db:"avatar_path"` // Optional field
-	IsPrivate    bool      `json:"isPrivate" db:"is_private"`
-	EmailVerified bool     `json:"emailVerified" db:"email_verified"`
-	CreatedAt    time.Time `json:"createdAt" db:"created_at"`
-	UpdatedAt    time.Time `json:"updatedAt" db:"updated_at"`
+	ID            string    `json:"id" db:"id"`
+	Email         string    `json:"email" db:"email"`
+	Password      Password  `json:"Hash" db:"password_hash"` // Never include in JSON responses
+	FirstName     string    `json:"firstName" db:"first_name"`
+	LastName      string    `json:"lastName" db:"last_name"`
+	DateOfBirth   time.Time `json:"dateOfBirth" db:"date_of_birth"`
+	Nickname      *string   `json:"nickname,omitempty" db:"nickname"`      // Optional field
+	AboutMe       *string   `json:"aboutMe,omitempty" db:"about_me"`       // Optional field
+	AvatarPath    *string   `json:"avatarPath,omitempty" db:"avatar_path"` // Optional field
+	IsPrivate     bool      `json:"isPrivate" db:"is_private"`
+	EmailVerified bool      `json:"emailVerified" db:"email_verified"`
+	CreatedAt     time.Time `json:"createdAt" db:"created_at"`
+	UpdatedAt     time.Time `json:"updatedAt" db:"updated_at"`
 }
 
 // UserRegistrationRequest represents the data needed to register a new user
@@ -36,24 +36,19 @@ type UserRegistrationRequest struct {
 // versions of the password for a user. The plaintext field is a *pointer* to a string,
 // so that we're able to distinguish between a plaintext password not being present in
 // the struct at all, versus a plaintext password which is the empty string "".
-type password struct {
+type Password struct {
 	Plaintext *string
 	Hash      []byte
 }
 
-// UserLoginRequest represents the data needed to login
-type UserLoginRequest struct {
-	Email    string `json:"email" validate:"required,email"`
-	Password string `json:"password" validate:"required"`
-}
 
 // UserUpdateRequest represents the data that can be updated for a user
 type UserUpdateRequest struct {
-	FirstName   *string `json:"firstName,omitempty"`
-	LastName    *string `json:"lastName,omitempty"`
-	Nickname    *string `json:"nickname,omitempty"`
-	AboutMe     *string `json:"aboutMe,omitempty"`
-	IsPrivate   *bool   `json:"isPrivate,omitempty"`
+	FirstName *string `json:"firstName,omitempty"`
+	LastName  *string `json:"lastName,omitempty"`
+	Nickname  *string `json:"nickname,omitempty"`
+	AboutMe   *string `json:"aboutMe,omitempty"`
+	IsPrivate *bool   `json:"isPrivate,omitempty"`
 }
 
 // // UserPublicProfile represents the public view of a user (without sensitive data)
@@ -122,8 +117,7 @@ type UserUpdateRequest struct {
 // 	Message        string    `json:"message" db:"message"`
 // 	IsRead         bool      `json:"isRead" db:"is_read"`
 // 	CreatedAt      time.Time `json:"createdAt" db:"created_at"`
-// } 
-
+// }
 
 // type Comments struct{
 // 	CommUID string `json:"commuid"`
@@ -133,7 +127,17 @@ type UserUpdateRequest struct {
 
 // type Reaction struct{
 // 	Likes int
-// 	Dislikes int 
+// 	Dislikes int
 
 // }
 
+type LoginRequest struct{
+	Email       string `json:"email" validate:"required,email"`
+	Password    string `json:"password" validate:"required,min=6"`
+}
+
+type Sessions struct {
+	SessionID string    `json:"sessionID"`
+	UserID string `json:"userID"`
+	Expires  time.Time `json:"expiryTime"`
+}

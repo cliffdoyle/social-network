@@ -35,10 +35,11 @@ func New(config Config) (*DB, error) {
 
 	// Open database connection
 	db, err := sql.Open("sqlite3", config.DatabasePath+"?_foreign_keys=on")
+	fmt.Println("here")
 	if err != nil {
 		return nil, fmt.Errorf("failed to open database: %w", err)
 	}
-
+fmt.Println("here1")
 	// Configure connection pool
 	if config.MaxOpenConns > 0 {
 		db.SetMaxOpenConns(config.MaxOpenConns)
