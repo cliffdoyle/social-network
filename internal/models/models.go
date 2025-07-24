@@ -41,12 +41,6 @@ type password struct {
 	Hash      []byte
 }
 
-// UserLoginRequest represents the data needed to login
-type UserLoginRequest struct {
-	Email    string `json:"email" validate:"required,email"`
-	Password string `json:"password" validate:"required"`
-}
-
 // UserUpdateRequest represents the data that can be updated for a user
 type UserUpdateRequest struct {
 	FirstName   *string `json:"firstName,omitempty"`
@@ -136,4 +130,19 @@ type UserUpdateRequest struct {
 // 	Dislikes int 
 
 // }
+type Followers struct {
+	ID         string `json:"id" db:"id"`
+	FolloweeID string`json:"followeeID"`
+	FollowerID string `json:"followerID"`
+}
 
+type LoginRequest struct {
+	Email    string `json:"email" validate:"required,email"`
+	Password string `json:"password" validate:"required,min=6"`
+}
+
+type Sessions struct {
+	SessionID string    `json:"sessionID"`
+	UserID    string    `json:"userID"`
+	Expires   time.Time `json:"expiryTime"`
+}
