@@ -41,7 +41,6 @@ type Password struct {
 	Hash      []byte
 }
 
-
 // UserUpdateRequest represents the data that can be updated for a user
 type UserUpdateRequest struct {
 	FirstName *string `json:"firstName,omitempty"`
@@ -63,17 +62,30 @@ type UserUpdateRequest struct {
 // 	CreatedAt   time.Time `json:"createdAt"`
 // }
 
-// // Post represents a post in the social network
-// type Post struct {
-// 	ID          string    `json:"id" db:"id"`
-// 	UserID      string    `json:"userId" db:"user_id"`
-// 	Title       string    `json:"title" db:"title"`
-// 	Content     string    `json:"content" db:"content"`
-// 	ImagePath   *string   `json:"imagePath,omitempty" db:"image_path"`
-// 	Privacy     string    `json:"privacy" db:"privacy"` // "public", "private", "almost_private"
-// 	CreatedAt   time.Time `json:"createdAt" db:"created_at"`
-// 	UpdatedAt   time.Time `json:"updatedAt" db:"updated_at"`
-// }
+//PostType defines the type of post, e.g "text" or "link"
+type PostType string
+
+const (
+	PostTypeText PostType = "text"
+	PostTypeLink PostType = "link"
+	PostTypeImage PostType = "image"
+	PostTypeVideos PostType = "videos"
+)
+
+// Post represents a post in the social network
+type Post struct {
+	ID        string    `json:"id" db:"id"`
+	UserID    string    `json:"userId" db:"user_id"`
+	GroupID   string    `json:"groupId" db:"group_id"`
+	Type      PostType  `json:"type" db:"type"`
+	Title     string    `json:"title" db:"title"`
+	Content   *string   `json:"content" db:"content"`
+	URL       *string   `json:"url,omitempty" db:"url"`
+	// ImagePath *string   `json:"imagePath,omitempty" db:"image_path"`
+	Privacy   string    `json:"privacy" db:"privacy"` // "public", "private", "almost_private"
+	CreatedAt time.Time `json:"createdAt" db:"created_at"`
+	UpdatedAt time.Time `json:"updatedAt" db:"updated_at"`
+}
 
 // // Group represents a group in the social network
 // type Group struct {
@@ -131,13 +143,13 @@ type UserUpdateRequest struct {
 
 // }
 
-type LoginRequest struct{
-	Email       string `json:"email" validate:"required,email"`
-	Password    string `json:"password" validate:"required,min=6"`
+type LoginRequest struct {
+	Email    string `json:"email" validate:"required,email"`
+	Password string `json:"password" validate:"required,min=6"`
 }
 
 type Sessions struct {
 	SessionID string    `json:"sessionID"`
-	UserID string `json:"userID"`
-	Expires  time.Time `json:"expiryTime"`
+	UserID    string    `json:"userID"`
+	Expires   time.Time `json:"expiryTime"`
 }
