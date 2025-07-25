@@ -8,63 +8,109 @@ import (
 )
 
 // PostType defines the type of post, e.g "text" or "link"
-type PostType string
+type PostPrivacy string
 
 const (
-	PostTypeText   PostType = "text"
-	PostTypeLink   PostType = "link"
-	PostTypeImage  PostType = "image"
-	PostTypeVideos PostType = "videos"
+	PrivacyPublic    PostPrivacy = "public"
+	PrivacyFollowers PostPrivacy = "followers" // "almost private"
+	PrivacyPrivate   PostPrivacy = "private"   // Viewable by a specific list of users
 )
 
 type Post struct {
-	ID      string   `json:"id" db:"id"`
-	UserID  string   `json:"userId" db:"user_id"`
-	GroupID string   `json:"groupId" db:"group_id"`
-	Type    PostType `json:"type" db:"type"`
-	Title   string   `json:"title" db:"title"`
-	Content *string  `json:"content" db:"content"`
-	URL     *string  `json:"url,omitempty" db:"url"`
-	// ImagePath *string   `json:"imagePath,omitempty" db:"image_path"`
-	Privacy   string    `json:"privacy" db:"privacy"` // "public", "private", "almost_private"
-	CreatedAt time.Time `json:"createdAt" db:"created_at"`
-	UpdatedAt time.Time `json:"updatedAt" db:"updated_at"`
+	ID        string      `json:"id" db:"id"`
+	UserID    string      `json:"userId" db:"user_id"`
+	GroupID   string      `json:"groupId,omitzero" db:"group_id"`
+	Title     string      `json:"title" db:"title"`
+	Content   *string     `json:"content,omitzero" db:"content"`
+	MediaURL  *string     `json:"mediaUrl,omitzero" db:"media_url"`
+	MediaType *string     `json="mediaUrl,omitzero" db:"media_url"`
+	Privacy   PostPrivacy `json:"privacy" db:"privacy"` // "public", "private", "almost_private"
+	CreatedAt time.Time   `json:"createdAt" db:"created_at"`
+	UpdatedAt time.Time   `json:"updatedAt" db:"updated_at"`
 }
 
+// The struct that maps to the incoming JSON from the user
+type PostCreateInput struct {
+	GroupID   *string     `json:"groupId"`
+	Content   *string     `json:"content"`
+	MediaURL  *string     `json:"mediaUrl"`
+	MediaType *string     `json:"mediaType"`
+	Privacy   PostPrivacy `json:"privacy"`
+	Audience  []string    `json:"audience"`
+}
+
+
+
+// This function validates the core post model. It ensures the data is sane
+// and ready for the database, according to the schema.
 func ValidatePost(v *validator.Validator, post *Post) {
-	// Basic field validation
-	v.Check(post.UserID != "", "userId", "must be provided")
-	v.Check(post.GroupID != "", "groupId", "must be provided")
-	v.Check(post.Title != "", "title", "must be provided")
-	v.Check(len(post.Title) <= 300, "title", "must not be more than 300 characters long")
+    // A UserID is always required. This would be set by the server from the session.
+    v.Check(post.UserID != "", "userId", "must be provided")
 
-	// 1. Update the list of permitted types
-	v.Check(
-		validator.PermittedValue(post.Type, PostTypeText, PostTypeLink, PostTypeImage, PostTypeVideos),
-		"type",
-		"must be a valid post type (text, link, image, or videos)",
-	)
+    // A post must have EITHER content OR a media URL, or both. It cannot be completely empty.
+    hasContent := post.Content != nil && *post.Content != ""
+    hasMedia := post.MediaURL != nil && *post.MediaURL != ""
+    v.Check(hasContent || hasMedia, "body", "post must include content or media")
 
-	v.Check(validator.PermittedValue(post.Privacy, "public", "private", "almost_private"), "privacy", "must be a valid privacy setting")
+    // If media is provided, its format must be validated.
+    if hasMedia {
+        _, err := url.ParseRequestURI(*post.MediaURL)
+        v.Check(err == nil, "mediaUrl", "must be a valid URL")
 
-	// 2. Update the conditional logic with grouped cases
-	switch post.Type {
-	case PostTypeText:
-		// A text post must have content and must not have a URL.
-		v.Check(post.Content != nil && *post.Content != "", "content", "must be provided for a text post")
-		v.Check(post.URL == nil, "url", "must be empty for a text post")
+        // MediaType must also be provided if there's a URL.
+        v.Check(post.MediaType != nil && *post.MediaType != "", "mediaType", "must be provided with mediaUrl")
+        if post.MediaType != nil {
+            v.Check(validator.PermittedValue(*post.MediaType, "image", "gif"), "mediaType", "must be 'image' or 'gif'")
+        }
+    } else {
+        // If there's no media, there should be no media type.
+        v.Check(post.MediaType == nil, "mediaType", "must not be provided without a mediaUrl")
+    }
 
-	case PostTypeLink, PostTypeImage, PostTypeVideos:
-		// A link, image, or video post must have a URL and must not have content.
-		v.Check(post.URL != nil && *post.URL != "", "url", "must be provided for this post type")
+    // Privacy setting must be one of the permitted values.
+    v.Check(validator.PermittedValue(post.Privacy, PrivacyPublic, PrivacyFollowers, PrivacyPrivate), "privacy", "must be a valid privacy setting")
+}
 
-		// Validate that the URL is a valid format.
-		if post.URL != nil && *post.URL != "" {
-			_, err := url.ParseRequestURI(*post.URL)
-			v.Check(err == nil, "url", "must be a valid URL")
-		}
 
-		v.Check(post.Content == nil, "content", "must be empty for this post type")
-	}
 
+// This new validation function handles the complete input from the client.
+func ValidatePostInput(v *validator.Validator, input *PostCreateInput) {
+    //Phase 1: Basic content validation
+    // A post must have EITHER content OR a media URL, or both. It cannot be completely empty.
+    hasContent := input.Content != nil && *input.Content != ""
+    hasMedia := input.MediaURL != nil && *input.MediaURL != ""
+    v.Check(hasContent || hasMedia, "body", "post must include content or media")
+
+    // If media is provided, validate it.
+    if hasMedia {
+        _, err := url.ParseRequestURI(*input.MediaURL)
+        v.Check(err == nil, "mediaUrl", "must be a valid URL")
+        
+        v.Check(input.MediaType != nil && *input.MediaType != "", "mediaType", "must be provided with mediaUrl")
+        if input.MediaType != nil {
+            v.Check(validator.PermittedValue(*input.MediaType, "image", "gif"), "mediaType", "must be 'image' or 'gif'")
+        }
+    } else {
+        v.Check(input.MediaType == nil, "mediaType", "must not be provided without a mediaUrl")
+    }
+
+    //Phase 2: Privacy and Audience validation
+
+    // First, validate the privacy setting itself.
+    v.Check(validator.PermittedValue(input.Privacy, PrivacyPublic, PrivacyFollowers, PrivacyPrivate), "privacy", "must be a valid privacy setting")
+    
+    // Now, apply rules based on the privacy setting.
+    switch input.Privacy {
+    case PrivacyPublic, PrivacyFollowers:
+        // For public or followers-only posts, an audience list MUST NOT be provided.
+        // It's an error because it's ambiguous and could lead to bugs.
+        v.Check(len(input.Audience) == 0, "audience", "must be empty for public or followers-only posts")
+
+	case PrivacyPrivate:
+        // For private posts, an audience list is REQUIRED.
+        v.Check(len(input.Audience) > 0, "audience", "must be provided for a private post")
+
+        // You might also want to check for a reasonable limit.
+        v.Check(len(input.Audience) <= 100, "audience", "cannot include more than 100 users")
+    }
 }
