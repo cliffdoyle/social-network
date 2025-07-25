@@ -1,0 +1,11 @@
+CREATE TABLE IF NOT EXISTS posts(
+    id TEXT PRIMARY KEY,
+    user_id TEXT NOT NULL,
+    group_id TEXT NOT NULL,
+    title TEXT NOT NULL,
+    type TEXT NOT NULL,
+    content TEXT,
+    url TEXT,
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
