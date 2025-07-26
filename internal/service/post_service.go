@@ -65,14 +65,22 @@ func (s *postService) Create(ctx context.Context, input models.PostCreateInput, 
 		return nil, err
 	}
 
-	//Return the newly created post object
+	// Return the newly created post object
 	return post, nil
 }
 
-//GetByID handles fetching a single post
+// GetByID handles fetching a single post
 func (s *postService) GetByID(ctx context.Context, postID string) (*models.Post, error) {
-	
+	post, err := s.repo.Get(ctx, postID)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, models.ErrRecordNotFound
+		}
+		return nil, err
+	}
 
+	// for now we just return the post , still waiting for follow and group logic
+	return post, nil
 }
 
 func (s *postService) Update(ctx context.Context, postID string, input models.PostUpdateInput) (*models.Post, error) {
