@@ -19,6 +19,8 @@ const (
 
 var ErrInvalidFieldInput = errors.New("invalid input data. Ensure all fields meet requirement!")
 
+var ErrRecordNotFound = errors.New("record not found")
+
 type Post struct {
 	ID        string      `json:"id" db:"id"`
 	UserID    string      `json:"userId" db:"user_id"`
@@ -85,6 +87,12 @@ func ValidatePost(v *validator.Validator, post *Post) {
 // This new validation function handles the complete input from the client.
 func ValidatePostInput(v *validator.Validator, input *PostCreateInput) {
 	// Phase 1: Basic content validation
+	// Validate Title: It is required and must have a reasonable length.
+	v.Check(input.Title != nil, "title", "must be provided")
+	if input.Title != nil {
+		v.Check(*input.Title != "", "title", "must not be empty")
+		v.Check(len(*input.Title) <= 300, "title", "must not be more than 300 characters long")
+	}
 	// A post must have EITHER content OR a media URL, or both. It cannot be completely empty.
 	hasContent := input.Content != nil && *input.Content != ""
 	hasMedia := input.MediaURL != nil && *input.MediaURL != ""
@@ -121,5 +129,13 @@ func ValidatePostInput(v *validator.Validator, input *PostCreateInput) {
 
 		// You might also want to check for a reasonable limit.
 		v.Check(len(input.Audience) <= 100, "audience", "cannot include more than 100 users")
+	}
+
+	// Validate GroupID if it is provided.
+	// This is optional, so we only check it if the pointer is not nil.
+	if input.GroupID != nil {
+		// Here you might check if the GroupID looks like a valid UUID, or if the
+		// group actually exists in the database (this check is often done in the service layer).
+		v.Check(*input.GroupID != "", "groupId", "must not be an empty string if provided")
 	}
 }
