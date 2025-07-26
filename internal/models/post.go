@@ -139,3 +139,49 @@ func ValidatePostInput(v *validator.Validator, input *PostCreateInput) {
 		v.Check(*input.GroupID != "", "groupId", "must not be an empty string if provided")
 	}
 }
+
+
+// ValidatePostUpdateInput scrutinizes the optional fields from a post update request.
+// It must also be given the FINAL intended privacy setting to correctly validate the audience.
+func ValidatePostUpdateInput(v *validator.Validator, input *PostUpdateInput, finalPrivacy PostPrivacy) {
+ 
+    // 1. If 'content' is provided, it cannot be empty.
+    if input.Content != nil {
+        v.Check(*input.Content != "", "content", "cannot be updated to an empty string")
+    }
+    
+    // 2. If 'mediaUrl' is provided, it and 'mediaType' must be valid.
+    if input.MediaURL != nil {
+        v.Check(*input.MediaURL != "", "mediaUrl", "cannot be updated to an empty string")
+        _, err := url.ParseRequestURI(*input.MediaURL)
+        v.Check(err == nil, "mediaUrl", "must be a valid URL")
+
+        // The logic implies if you update the URL, you must also provide the type.
+        v.Check(input.MediaType != nil, "mediaType", "must be provided when updating mediaUrl")
+        if input.MediaType != nil {
+            v.Check(validator.PermittedValue(*input.MediaType, "image", "gif"), "mediaType", "must be 'image' or 'gif'")
+        }
+    } else if input.MediaType != nil {
+        // It's an error to provide a mediaType without a mediaUrl.
+        v.Check(false, "mediaType", "cannot be provided without a mediaUrl")
+    }
+
+    // 3. If 'privacy' is provided, it must be one of the permitted values.
+    if input.Privacy != "" {
+        v.Check(validator.PermittedValue(input.Privacy, PrivacyPublic, PrivacyFollowers, PrivacyPrivate), "privacy", "must be a valid privacy setting")
+    }
+    
+    
+    // 4. If the user provided an audience list, perform checks on it.
+    if input.Audience != nil {
+        // It's an error if the final privacy setting is public but an audience was given.
+        if finalPrivacy == PrivacyPublic || finalPrivacy == PrivacyFollowers {
+            v.Check(len(input.Audience) == 0, "audience", "must be empty for public or followers-only posts")
+        }
+
+        // It's a general validation that the audience list isn't excessively long.
+        v.Check(len(input.Audience) <= 100, "audience", "cannot include more than 100 users")
+        
+    }
+
+}
