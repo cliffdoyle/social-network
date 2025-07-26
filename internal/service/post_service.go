@@ -60,7 +60,7 @@ func (s *postService) Create(ctx context.Context, input models.PostCreateInput, 
 	err := s.repo.Insert(ctx, post, input.Audience)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return nil, models.ErrRecordNotFound
+			return nil, err//the handler to inspect and decide which HTTP status code to return 
 		}
 		return nil, err
 	}
@@ -74,7 +74,7 @@ func (s *postService) GetByID(ctx context.Context, postID string) (*models.Post,
 	post, err := s.repo.Get(ctx, postID)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return nil, models.ErrRecordNotFound
+			return nil, err
 		}
 		return nil, err
 	}
@@ -84,6 +84,55 @@ func (s *postService) GetByID(ctx context.Context, postID string) (*models.Post,
 }
 
 func (s *postService) Update(ctx context.Context, postID string, input models.PostUpdateInput) (*models.Post, error) {
+	// Fetch the existing post to ensure it exists and to get its owner ID
+	existsPost, err := s.repo.Get(ctx, postID)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, err
+		}
+		return nil, err
+	}
+
+	// Conditionally apply updates only for fields that were provided in the input
+	if input.Content != nil {
+		existsPost.Content = input.Content
+	}
+
+	if input.MediaURL != nil {
+		existsPost.MediaURL = input.MediaURL
+
+		existsPost.MediaType = input.MediaType
+	}
+
+	if input.Privacy != "" {
+		existsPost.Privacy = input.Privacy
+	}
+
+	var newAudience []string = nil
+
+	if input.Audience != nil {
+		newAudience = input.Audience
+	}
+
+	v := validator.New()
+
+	// Pass the raw input DTO from user for validation before final merge
+	models.ValidatePostUpdateInput(v, &input, existsPost.Privacy)
+
+	// After validating the input we validate the final post object
+	// ensures the update doesn't result in an empty post
+	models.ValidatePost(v, existsPost)
+
+	if !v.Valid() {
+		return nil,&validator.ValidationError{Errors: v.Errors}
+	}
+
+	// Call the repository
+	err = s.repo.Update(ctx, existsPost, newAudience)
+	if err != nil {
+		return nil, err
+	}
+	return existsPost, nil
 }
 
 func (s *postService) Delete(ctx context.Context, postID string, userID string) error {
