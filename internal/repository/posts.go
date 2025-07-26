@@ -27,6 +27,12 @@ func NewPosts(db *database.DB) Posts {
 	return &PostsModel{DB: db}
 }
 
+// Define a custom ErrRecordNotFound error. We'll return this from our Get() method when
+// looking up a movie that doesn't exist in our database.
+var (
+ErrRecordNotFound = errors.New("record not found")
+)
+
 // Add a method for inserting a new record in the posts table.
 // It can add a post optionally to the post_audience table too
 // the operation is performed in a transaction
@@ -87,6 +93,7 @@ func (m *PostsModel) Insert(ctx context.Context, post *models.Post, audience []s
 
 // Add a method for fetching a specific record from the posts table by its ID.
 func (m *PostsModel) Get(ctx context.Context, id string) (*models.Post, error) {
+
 	query := `SELECT id,user_id,group_id,title,content,media_url,media_type,privacy,created_at,updated_at
 	FROM posts
 	WHERE id = ?`
@@ -109,7 +116,7 @@ func (m *PostsModel) Get(ctx context.Context, id string) (*models.Post, error) {
 
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return nil, sql.ErrNoRows
+			return nil, ErrRecordNotFound
 		}
 		return nil, err
 	}
@@ -122,6 +129,29 @@ func (m *PostsModel) Update(ctx context.Context, post *models.Post) error {
 }
 
 // Add a method for deleting a specific record from the posts table.
+//All related rows in `post_audience` will also be deleted automatically
 func (m *PostsModel) Delete(ctx context.Context, id string) error {
+	query:=`DELETE FROM posts WHERE id = ?`
+
+	result,err:=m.DB.ExecContext(ctx,query,id)
+	if err !=nil{
+		return  err
+	}
+
+	//Call the RowsAffected() method on the sql.Result object to get the number of rows
+	//affected by the query
+	rowsAffected, err := result.RowsAffected()
+	if err !=nil{
+		return  err
+	}
+
+	//If no rows were affected, we know that the post table didn't contain a record 
+	//with the provided ID at the moment we tried to delete it. In that case we just
+	//return an ErrRecordNotFound error
+	if rowsAffected==0{
+		return ErrRecordNotFound
+	}
+
+
 	return nil
 }
