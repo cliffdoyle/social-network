@@ -7,15 +7,23 @@ import (
 	// "github.com/cliffdoyle/social-network/internal/validator"
 )
 
-//Declare a regular expression for sanity checking the format of email addresses
-
-var (
-	EmailRX = regexp.MustCompile("^[a-zA-Z0-9.!#$%&'*+\\/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$")
-)
+// Declare a regular expression for sanity checking the format of email addresses
+var EmailRX = regexp.MustCompile("^[a-zA-Z0-9.!#$%&'*+\\/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$")
 
 // Define a new Validator type which contains a map of validation errors
 type Validator struct {
 	Errors map[string]string
+}
+
+
+//Custom error type to hold a map of validation errors
+type ValidationError struct {
+	Errors map[string]string
+}
+
+//Error() makes our ValidationError satisfy the standard Go `error` interface
+func (e *ValidationError) Error() string {
+	return "Validation failed with one or more errors"
 }
 
 // New is a helper which creates a new Validator instance with an empty errors map
@@ -30,7 +38,7 @@ func (v *Validator) Valid() bool {
 
 // AddError adds an error message to the map (so long as no entry already exists for the given key)
 func (v *Validator) AddError(key, message string) {
-	_, exists := v.Errors[key];
+	_, exists := v.Errors[key]
 	if !exists {
 		v.Errors[key] = message
 	}
