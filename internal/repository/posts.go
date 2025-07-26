@@ -2,6 +2,8 @@ package repository
 
 import (
 	"context"
+	"database/sql"
+	"errors"
 
 	"github.com/cliffdoyle/social-network/internal/database"
 	"github.com/cliffdoyle/social-network/internal/models"
@@ -40,13 +42,14 @@ func (m *PostsModel) Insert(ctx context.Context, post *models.Post, audience []s
 
 	//Prepare the SQL for inserting into the `posts` table
 	query := `
-	INSERT INTO posts (id,user_id,group_id,content,media_url,media_type,privacy)
+	INSERT INTO posts (id,user_id,group_id,title,content,media_url,media_type,privacy)
 	VALUES(?,?,?,?,?,?,?)`
 
 	args := []any{
 		post.ID,
 		post.UserID,
 		post.GroupID,
+		post.Title,
 		post.Content,
 		post.MediaURL,
 		post.MediaType,
@@ -70,21 +73,47 @@ func (m *PostsModel) Insert(ctx context.Context, post *models.Post, audience []s
 
 		defer stmt.Close()
 
-		for _,userID:=range audience{
-			_,err:=stmt.ExecContext(ctx,post.ID,userID)
-			if err !=nil{
-				return  err
+		for _, userID := range audience {
+			_, err := stmt.ExecContext(ctx, post.ID, userID)
+			if err != nil {
+				return err
 			}
 		}
 	}
 
 	//If everything succeeded, commit the transaction
-	return  tx.Commit()
+	return tx.Commit()
 }
 
-// Add a method for fetching a specific record from the posts table.
+// Add a method for fetching a specific record from the posts table by its ID.
 func (m *PostsModel) Get(ctx context.Context, id string) (*models.Post, error) {
-	return nil, nil
+	query := `SELECT id,user_id,group_id,title,content,media_url,media_type,privacy,created_at,updated_at
+	FROM posts
+	WHERE id = ?`
+
+	var post models.Post
+
+	//Use QueryRowContext on the main connection pool
+	err := m.DB.QueryRowContext(ctx, query, id).Scan(
+		&post.ID,
+		&post.UserID,
+		&post.GroupID,
+		&post.Title,
+		&post.Content,
+		&post.MediaURL,
+		&post.MediaType,
+		&post.Privacy,
+		&post.CreatedAt,
+		&post.UpdatedAt,
+	)
+
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, sql.ErrNoRows
+		}
+		return nil, err
+	}
+	return &post, nil
 }
 
 // Add a method for updating a specific record in the posts table.
