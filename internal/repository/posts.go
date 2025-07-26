@@ -8,9 +8,9 @@ import (
 // Posts interface defines the interface for posts related database operations
 type Posts interface {
 	Insert(post *models.Post) error
-	Get(id int64) (*models.Post, error)
+	Get(id string) (*models.Post, error)
 	Update(post *models.Post) error
-	Delete(id int64) error
+	Delete(id string) error
 }
 
 // Define a PostModel struct type which wraps a sql.DB connection pool.
@@ -29,7 +29,7 @@ func (m *PostsModel) Insert(post *models.Post) error {
 }
 
 // Add a method for fetching a specific record from the posts table.
-func (m *PostsModel) Get(id int64) (*models.Post, error) {
+func (m *PostsModel) Get(id string) (*models.Post, error) {
 	return nil, nil
 }
 
@@ -39,6 +39,6 @@ func (m *PostsModel) Update(post *models.Post) error {
 }
 
 // Add a method for deleting a specific record from the posts table.
-func (m *PostsModel) Delete(id int64) error {
+func (m *PostsModel) Delete(id string) error {
 	return nil
 }
