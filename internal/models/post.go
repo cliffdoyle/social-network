@@ -1,6 +1,7 @@
 package models
 
 import (
+	"errors"
 	"net/url"
 	"time"
 
@@ -15,6 +16,8 @@ const (
 	PrivacyFollowers PostPrivacy = "followers" // "almost private"
 	PrivacyPrivate   PostPrivacy = "private"   // Viewable by a specific list of users
 )
+
+var ErrInvalidFieldInput = errors.New("invalid input data. Ensure all fields meet requirement!")
 
 type Post struct {
 	ID        string      `json:"id" db:"id"`
@@ -32,6 +35,7 @@ type Post struct {
 // The struct that maps to the incoming JSON from the user
 type PostCreateInput struct {
 	GroupID   *string     `json:"groupId"`
+	Title     *string     `json:"title"`
 	Content   *string     `json:"content"`
 	MediaURL  *string     `json:"mediaUrl"`
 	MediaType *string     `json:"mediaType"`
@@ -39,78 +43,83 @@ type PostCreateInput struct {
 	Audience  []string    `json:"audience"`
 }
 
-
+// Struct for updates , maps to the incoming JSON request for updates
+type PostUpdateInput struct {
+	Content   *string     `json:"content"`
+	MediaURL  *string     `json:"mediaUrl"`
+	MediaType *string     `json:"mediaType"`
+	Privacy   PostPrivacy `json:"privacy"`
+	Audience  []string    `json:"audience"`
+}
 
 // This function validates the core post model. It ensures the data is sane
 // and ready for the database, according to the schema.
 func ValidatePost(v *validator.Validator, post *Post) {
-    // A UserID is always required. This would be set by the server from the session.
-    v.Check(post.UserID != "", "userId", "must be provided")
+	// A UserID is always required. This would be set by the server from the session.
+	v.Check(post.UserID != "", "userId", "must be provided")
 
-    // A post must have EITHER content OR a media URL, or both. It cannot be completely empty.
-    hasContent := post.Content != nil && *post.Content != ""
-    hasMedia := post.MediaURL != nil && *post.MediaURL != ""
-    v.Check(hasContent || hasMedia, "body", "post must include content or media")
+	// A post must have EITHER content OR a media URL, or both. It cannot be completely empty.
+	hasContent := post.Content != nil && *post.Content != ""
+	hasMedia := post.MediaURL != nil && *post.MediaURL != ""
+	v.Check(hasContent || hasMedia, "body", "post must include content or media")
 
-    // If media is provided, its format must be validated.
-    if hasMedia {
-        _, err := url.ParseRequestURI(*post.MediaURL)
-        v.Check(err == nil, "mediaUrl", "must be a valid URL")
+	// If media is provided, its format must be validated.
+	if hasMedia {
+		_, err := url.ParseRequestURI(*post.MediaURL)
+		v.Check(err == nil, "mediaUrl", "must be a valid URL")
 
-        // MediaType must also be provided if there's a URL.
-        v.Check(post.MediaType != nil && *post.MediaType != "", "mediaType", "must be provided with mediaUrl")
-        if post.MediaType != nil {
-            v.Check(validator.PermittedValue(*post.MediaType, "image", "gif"), "mediaType", "must be 'image' or 'gif'")
-        }
-    } else {
-        // If there's no media, there should be no media type.
-        v.Check(post.MediaType == nil, "mediaType", "must not be provided without a mediaUrl")
-    }
+		// MediaType must also be provided if there's a URL.
+		v.Check(post.MediaType != nil && *post.MediaType != "", "mediaType", "must be provided with mediaUrl")
+		if post.MediaType != nil {
+			v.Check(validator.PermittedValue(*post.MediaType, "image", "gif"), "mediaType", "must be 'image' or 'gif'")
+		}
+	} else {
+		// If there's no media, there should be no media type.
+		v.Check(post.MediaType == nil, "mediaType", "must not be provided without a mediaUrl")
+	}
 
-    // Privacy setting must be one of the permitted values.
-    v.Check(validator.PermittedValue(post.Privacy, PrivacyPublic, PrivacyFollowers, PrivacyPrivate), "privacy", "must be a valid privacy setting")
+	// Privacy setting must be one of the permitted values.
+	v.Check(validator.PermittedValue(post.Privacy, PrivacyPublic, PrivacyFollowers, PrivacyPrivate), "privacy", "must be a valid privacy setting")
 }
-
-
 
 // This new validation function handles the complete input from the client.
 func ValidatePostInput(v *validator.Validator, input *PostCreateInput) {
-    //Phase 1: Basic content validation
-    // A post must have EITHER content OR a media URL, or both. It cannot be completely empty.
-    hasContent := input.Content != nil && *input.Content != ""
-    hasMedia := input.MediaURL != nil && *input.MediaURL != ""
-    v.Check(hasContent || hasMedia, "body", "post must include content or media")
+	// Phase 1: Basic content validation
+	// A post must have EITHER content OR a media URL, or both. It cannot be completely empty.
+	hasContent := input.Content != nil && *input.Content != ""
+	hasMedia := input.MediaURL != nil && *input.MediaURL != ""
+	v.Check(hasContent || hasMedia, "body", "post must include content or media")
 
-    // If media is provided, validate it.
-    if hasMedia {
-        _, err := url.ParseRequestURI(*input.MediaURL)
-        v.Check(err == nil, "mediaUrl", "must be a valid URL")
-        
-        v.Check(input.MediaType != nil && *input.MediaType != "", "mediaType", "must be provided with mediaUrl")
-        if input.MediaType != nil {
-            v.Check(validator.PermittedValue(*input.MediaType, "image", "gif"), "mediaType", "must be 'image' or 'gif'")
-        }
-    } else {
-        v.Check(input.MediaType == nil, "mediaType", "must not be provided without a mediaUrl")
-    }
+	// If media is provided, validate it.
+	if hasMedia {
+		_, err := url.ParseRequestURI(*input.MediaURL)
+		v.Check(err == nil, "mediaUrl", "must be a valid URL")
 
-    //Phase 2: Privacy and Audience validation
+		v.Check(input.MediaType != nil && *input.MediaType != "", "mediaType", "must be provided with mediaUrl")
+		if input.MediaType != nil {
+			v.Check(validator.PermittedValue(*input.MediaType, "image", "gif"), "mediaType", "must be 'image' or 'gif'")
+		}
+	} else {
+		v.Check(input.MediaType == nil, "mediaType", "must not be provided without a mediaUrl")
+	}
 
-    // First, validate the privacy setting itself.
-    v.Check(validator.PermittedValue(input.Privacy, PrivacyPublic, PrivacyFollowers, PrivacyPrivate), "privacy", "must be a valid privacy setting")
-    
-    // Now, apply rules based on the privacy setting.
-    switch input.Privacy {
-    case PrivacyPublic, PrivacyFollowers:
-        // For public or followers-only posts, an audience list MUST NOT be provided.
-        // It's an error because it's ambiguous and could lead to bugs.
-        v.Check(len(input.Audience) == 0, "audience", "must be empty for public or followers-only posts")
+	// Phase 2: Privacy and Audience validation
+
+	// First, validate the privacy setting itself.
+	v.Check(validator.PermittedValue(input.Privacy, PrivacyPublic, PrivacyFollowers, PrivacyPrivate), "privacy", "must be a valid privacy setting")
+
+	// Now, apply rules based on the privacy setting.
+	switch input.Privacy {
+	case PrivacyPublic, PrivacyFollowers:
+		// For public or followers-only posts, an audience list MUST NOT be provided.
+		// It's an error because it's ambiguous and could lead to bugs.
+		v.Check(len(input.Audience) == 0, "audience", "must be empty for public or followers-only posts")
 
 	case PrivacyPrivate:
-        // For private posts, an audience list is REQUIRED.
-        v.Check(len(input.Audience) > 0, "audience", "must be provided for a private post")
+		// For private posts, an audience list is REQUIRED.
+		v.Check(len(input.Audience) > 0, "audience", "must be provided for a private post")
 
-        // You might also want to check for a reasonable limit.
-        v.Check(len(input.Audience) <= 100, "audience", "cannot include more than 100 users")
-    }
+		// You might also want to check for a reasonable limit.
+		v.Check(len(input.Audience) <= 100, "audience", "cannot include more than 100 users")
+	}
 }
