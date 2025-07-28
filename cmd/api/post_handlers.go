@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/cliffdoyle/social-network/internal/models"
+	"github.com/cliffdoyle/social-network/internal/validator"
 )
 
 // createPostHandler handles POST /posts requests
@@ -70,10 +71,49 @@ func (app *application) getPostHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	//send data to client through json marshal
+	err = app.writeJSON(w, http.StatusCreated, post)
+	if err != nil {
+		app.serverErrorResponse(w, r, err)
+	}
+}
+
+//updatePostHandler handles PATCH /posts/{id} requests
+
+func (app *application) updatePostHandler(w http.ResponseWriter, r *http.Request) {
+	//retrieve post id from request url
+	postID := app.readIDParam(r)
+
+	//DTO to old post json from client temporarily
+	var input models.PostUpdateInput
+
+	//read incoming json to input struct
+	err := app.readJSON(w, r, &input)
+	if err != nil {
+		app.badRequestResponse(w, r, err)
+		return
+	}
+
+	//call the service layer to handle validation of the post to be updated
+	 // Your service layer checks if the user owns the post.
+    post, err := app.postService.Update(r.Context(), postID, input)
+    if err != nil {
+        var validationErr validator.ValidationError
+        if errors.Is(err, sql.ErrNoRows) {
+            app.notFoundResponse(w, r)
+            return
+        } else if errors.As(err, &validationErr) {
+            app.failedValidationResponse(w, r, map[string]any{"error":"Validation failed"})
+            return
+        }
+        app.serverErrorResponse(w, r, err)
+        return
+    }
 
 	//send data to client through json marshal
 	err = app.writeJSON(w, http.StatusCreated, post)
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
 	}
+
 }
