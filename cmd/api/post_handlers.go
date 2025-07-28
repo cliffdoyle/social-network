@@ -51,3 +51,9 @@ func (app *application) createPostHandler(w http.ResponseWriter, r *http.Request
 		app.serverErrorResponse(w, r, err)
 	}
 }
+
+//getPostHandler handles GET /posts/{id} requests
+func (app *application) getPostHandler(w http.ResponseWriter,r *http.Request){
+	//read the postID from the request URL
+	postID:=app.rea
+}
