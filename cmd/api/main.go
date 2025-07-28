@@ -35,6 +35,7 @@ type application struct {
 	// Add the user service
 	services       service.UserService
 	sessionService service.SessionService
+	postService   service.PostService
 }
 
 func main() {
@@ -66,10 +67,12 @@ func main() {
 	// Initialize Repositories
 	userRepo := repository.NewUserRepository(db)
 	sessionsRepo := repository.NewSessionRepository(db)
+	postRepo:=repository.NewPosts(db)
 
 	// Initialize Services
 	userService := service.NewUserService(userRepo)
 	sessionsService := service.NewSessionService(sessionsRepo)
+	postService:=service.NewPostService(postRepo)
 
 	// Inject dependencies into the application struct
 	app := &application{
@@ -81,6 +84,7 @@ func main() {
 		// Inject the service
 		services: userService,
 		sessionService: sessionsService,
+		postService: postService,
 	}
 
 	// Declare new servemux which dispatches requests to

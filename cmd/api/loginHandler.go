@@ -7,26 +7,31 @@ import (
 	"strings"
 
 	"github.com/cliffdoyle/social-network/internal/models"
-	"golang.org/x/crypto/bcrypt"
 )
 
 func (app *application) LoginHandler(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodPost {
-		json.NewEncoder(w).Encode(map[string]any{
-			"message": "invalid request",
-			"code":    http.StatusMethodNotAllowed,
-		})
-		return
-	}
+	// if r.Method != http.MethodPost {
+	// 	json.NewEncoder(w).Encode(map[string]any{
+	// 		"message": "invalid request",
+	// 		"code":    http.StatusMethodNotAllowed,
+	// 	})
+	// 	return
+	// }
 	fmt.Println("hre55")
 
 	var loginDetails *models.LoginRequest
-	err := json.NewDecoder(r.Body).Decode(&loginDetails)
+	// err := json.NewDecoder(r.Body).Decode(&loginDetails)
+	// if err != nil {
+	// 	json.NewEncoder(w).Encode(map[string]any{
+	// 		"message": "invalid request",
+	// 		"code":    http.StatusInternalServerError,
+	// 	})
+	// 	return
+	// }
+
+	err := app.readJSON(w, r, &loginDetails)
 	if err != nil {
-		json.NewEncoder(w).Encode(map[string]any{
-			"message": "invalid request",
-			"code":    http.StatusInternalServerError,
-		})
+		app.badRequestResponse(w, r, err)
 		return
 	}
 
@@ -57,23 +62,23 @@ func (app *application) LoginHandler(w http.ResponseWriter, r *http.Request) {
 
 	fmt.Println("okay")
 	fmt.Println("password details:", ps)
-	// valid,err:=ps.Matches(password)
-	// if err!=nil ||!valid{
-	// 	json.NewEncoder(w).Encode(map[string]any{
-	// 		"message":"incorrect credentials.Please try again",
-	// 		"code":http.StatusMethodNotAllowed,
-	// 	})
-	// 	return
-	// }
-	err = bcrypt.CompareHashAndPassword(ps, []byte(password))
-	if err != nil {
-		fmt.Println("Error bcrypt", err)
+	valid, err := user.Password.Matches(password)
+	if err != nil || !valid {
+		json.NewEncoder(w).Encode(map[string]any{
+			"message": "incorrect credentials.Please try again",
+			"code":    http.StatusMethodNotAllowed,
+		})
 		return
 	}
+	// err = bcrypt.CompareHashAndPassword(ps, []byte(password))
+	// if err != nil {
+	// 	fmt.Println("Error bcrypt", err)
+	// 	return
+	// }
 
 	fmt.Println("okay2")
-	app.writeJSON(w,200,map[string]any{
-		"success":"loggedin",
+	app.writeJSON(w, 200, map[string]any{
+		"success": "loggedin",
 	})
 
 	app.GenerateSession(w, *r, user.ID)

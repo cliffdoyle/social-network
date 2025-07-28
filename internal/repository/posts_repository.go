@@ -149,44 +149,44 @@ func (m *PostsModel) Update(ctx context.Context, post *models.Post, newAudience 
 		post.ID,
 	}
 
-	result,err:=tx.ExecContext(ctx,query,args...)
-	if err !=nil{
-		return  err
-	}
-
-	//If no rows were affected we know that no records were affected in the database 
-	//therefore none exixted
-	rowsAffected,err:=result.RowsAffected()
-	if err !=nil{
+	result, err := tx.ExecContext(ctx, query, args...)
+	if err != nil {
 		return err
 	}
 
-	if rowsAffected==0{
+	//If no rows were affected we know that no records were affected in the database
+	//therefore none exixted
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return err
+	}
+
+	if rowsAffected == 0 {
 		return ErrRecordNotFound
 	}
 
 	//Delete all old audience members for this post
 	//This runs regardless of the new privacy setting, ensuring we clean up
 	//if a post is changed from private to public
-	queryAudience:=`DELETE FROM post_audience WHERE post_id=?`
+	queryAudience := `DELETE FROM post_audience WHERE post_id=?`
 
-	_,err=tx.ExecContext(ctx,queryAudience,post.ID)
-	if err !=nil{
+	_, err = tx.ExecContext(ctx, queryAudience, post.ID)
+	if err != nil {
 		return err
 	}
 
 	//If the new privacy setting is "private", insert the new audience
-	if post.Privacy==models.PrivacyPrivate && len(newAudience) > 0{
-		query:=`INSERT INTO post_audience (post_id,user_id) VALUES (?,?)`
-		stmt,err:=tx.PrepareContext(ctx,query)
-		if err !=nil{
+	if post.Privacy == models.PrivacyPrivate && len(newAudience) > 0 {
+		query := `INSERT INTO post_audience (post_id,user_id) VALUES (?,?)`
+		stmt, err := tx.PrepareContext(ctx, query)
+		if err != nil {
 			return err
 		}
 		defer stmt.Close()
 
-		for _,userID:=range newAudience{
-			_,err=stmt.ExecContext(ctx,post.ID,userID)
-			if err !=nil{
+		for _, userID := range newAudience {
+			_, err = stmt.ExecContext(ctx, post.ID, userID)
+			if err != nil {
 				return err
 			}
 		}
