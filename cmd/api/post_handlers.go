@@ -52,8 +52,28 @@ func (app *application) createPostHandler(w http.ResponseWriter, r *http.Request
 	}
 }
 
-//getPostHandler handles GET /posts/{id} requests
-func (app *application) getPostHandler(w http.ResponseWriter,r *http.Request){
+// getPostHandler handles GET /posts/{id} requests
+func (app *application) getPostHandler(w http.ResponseWriter, r *http.Request) {
 	//read the postID from the request URL
-	postID:=app.rea
+	postID := app.readIDParam(r)
+
+	//context to determine maximum time requests take to fetch from db
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+	post, err := app.postService.GetByID(ctx, postID)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			app.notFoundResponse(w, r)
+			return
+		}
+		app.serverErrorResponse(w, r, err)
+		return
+	}
+
+
+	//send data to client through json marshal
+	err = app.writeJSON(w, http.StatusCreated, post)
+	if err != nil {
+		app.serverErrorResponse(w, r, err)
+	}
 }
