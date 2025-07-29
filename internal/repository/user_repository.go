@@ -32,9 +32,9 @@ func NewUserRepository(db *database.DB) UserRepository {
 // It returns the user if found, or sql.ErrNoRows if not found
 func (r *userRepository) FindByEmail(email string) (*models.User, error) {
 	var user models.User
-	query := "SELECT id FROM users WHERE email =?"
+	query := "SELECT id,password_hash FROM users WHERE email =?"
 
-	err := r.DB.QueryRow(query, email).Scan(&user.ID)
+	err := r.DB.QueryRow(query, email).Scan(&user.ID,&user.Password.Hash)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			//No user found, not an application error
