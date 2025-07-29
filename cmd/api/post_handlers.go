@@ -6,7 +6,6 @@ import (
 	"errors"
 	"net/http"
 	"time"
-
 	"github.com/cliffdoyle/social-network/internal/models"
 	"github.com/cliffdoyle/social-network/internal/validator"
 )
@@ -149,4 +148,31 @@ func (app *application) deletePostHandler(w http.ResponseWriter, r *http.Request
 
 	// Send a 204 No Content for successful deletions
 	w.WriteHeader(http.StatusNoContent)
+}
+
+func (app *application)PostsFeedByPrivacy(w http.ResponseWriter,r *http.Request){
+	var allposts []*models.Post
+
+	userID:=r.Context().Value("user_id").(string)
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	publicPost,err:=app.postService.GetPosts(ctx,userID)
+	if err!=nil{
+
+	}
+	// followingPosts,err:=app.postService.GetPostFromFollowing(ctx,userID)
+	// 	if err!=nil{
+
+	// }
+
+	// closeFriendPosts,err:=app.postService.GetPostsFromCloseFriend(ctx,userID)
+	// 	if err!=nil{
+
+	// }
+
+	// allposts=append(allposts, publicPost...)
+	// allposts=append(allposts,followingPosts...)
+	// allposts=append(allposts,closeFriendPosts...)
+
 }
