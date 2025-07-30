@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"fmt"
 	"time"
 
 	"github.com/cliffdoyle/social-network/internal/models"
@@ -19,9 +20,7 @@ type PostService interface {
 	GetByID(ctx context.Context, postID string) (*models.Post, error)
 	Update(ctx context.Context, postID string, input models.PostUpdateInput) (*models.Post, error)
 	Delete(ctx context.Context, postID string, userID string) error
-	GetPosts(ctx context.Context,id string) (*[]models.Post, error)
-	// 	GetPostFromFollowing(ctx context.Context,userID string)(*[]models.Post,error)
-	// 	GetPostsFromCloseFriend(ctx context.Context,userID string)(*[]models.Post,error)
+	GetPosts(ctx context.Context, id string) ([]*models.Post, error)
 }
 
 // postService struct implements the UserService interface
@@ -155,12 +154,11 @@ func (s *postService) Delete(ctx context.Context, postID string, userID string) 
 	return s.repo.Delete(ctx, postID)
 }
 
-func (p *postService) GetPosts(ctx context.Context,id string) {
-	posts := p.repo.GetAllPosts(ctx,id )
+func (p *postService) GetPosts(ctx context.Context, id string) ([]*models.Post, error) {
+	posts, err := p.repo.GetAllPosts(ctx, id)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get all posts with error %s", err)
+	}
+	return posts, nil
 }
 
-// func (p *postService) GetPostsFromCloseFriend(ctx context.Context, userID string) {
-// }
-
-// func (p *postService) GetPostFromFollowing(ctx context.Context, userid string) {
-// }
