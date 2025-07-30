@@ -5,7 +5,6 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
-	"log"
 	"time"
 
 	"github.com/cliffdoyle/social-network/internal/database"
@@ -258,7 +257,7 @@ WHERE
 ORDER BY
     p.updated_at DESC;`
 
-	rows, err := m.DB.QueryContext(ctx, query,id,id)
+	rows, err := m.DB.QueryContext(ctx, query, id, id)
 	if err != nil {
 		return nil, fmt.Errorf("error querying for visible posts: %w", err)
 	}
@@ -266,7 +265,7 @@ ORDER BY
 
 	var posts []*models.Post
 	for rows.Next() {
-		p := &models.Post{}
+		p:=&models.Post{}
 		if err := rows.Scan(
 			&p.ID,
 			&p.UserID,
@@ -288,6 +287,7 @@ ORDER BY
 
 	return posts, nil
 }
+
 // func GetPeopleIFollowIDs(ctx context.Context, id string, tx *sql.Tx) ([]string, error) {
 // 	var peopleIFollow []string
 
