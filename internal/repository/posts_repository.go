@@ -242,9 +242,9 @@ func (m *PostsModel) GetAllPosts(ctx context.Context, id string) ([]*models.Post
     content,
     media_url,
     privacy,
-    updated_at FROM posts WHERE privacy=public`
+    updated_at FROM posts  p WHERE p.privacy=?`
 
-	rows, err := tx.QueryContext(ctx, query1)
+	rows, err := tx.QueryContext(ctx, query1, "public")
 	if err != nil {
 		if errors.Is(err, context.DeadlineExceeded) {
 			log.Println("Query Time Out")
@@ -253,17 +253,105 @@ func (m *PostsModel) GetAllPosts(ctx context.Context, id string) ([]*models.Post
 	defer rows.Close()
 	var posts []*models.Post
 	for rows.Next() {
-		var p *models.Post
+		p := &models.Post{}
 		if err := rows.Scan(&p.ID, &p.UserID, &p.GroupID, &p.Title, &p.Content, &p.MediaURL, &p.Privacy, &p.UpdatedAt); err != nil {
 			return nil, fmt.Errorf("error querying posts")
 		}
-		posts=append(posts, p)
+		posts = append(posts, p)
 	}
-	
+	postIDs, err := GetPostIds(ctx, id, tx)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get private post IDs: %w", err)
+	}
+	userIDs, err := GetPeopleIFollowIDs(ctx, id, tx)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get private post IDs: %w", err)
+	}
 
+	query2 := `SELECT id,
+    user_id,
+    group_id,
+    title,
+    content,
+    media_url,
+    privacy,
+    updated_at FROM posts p WHERE p.user_id=? AND p.privacy=?`
+
+	for _, u := range userIDs {
+		p := &models.Post{}
+		row := tx.QueryRowContext(ctx, query2, u, "almost private")
+		if err := row.Scan(&p.ID, &p.UserID, &p.GroupID, &p.Title, &p.Content, &p.MediaURL, &p.Privacy, &p.UpdatedAt); err != nil {
+			if err == sql.ErrNoRows {
+				continue
+			}
+		}
+		posts = append(posts, p)
+
+	}
+	query3 := `SELECT  id,
+    user_id,
+    group_id,
+    title,
+    content,
+    media_url,
+    privacy,
+    updated_at FROM posts p WHERE p.id=? AND p.privacy=?`
+
+	for _, ids := range postIDs {
+		p := &models.Post{}
+		row := tx.QueryRowContext(ctx, query3, ids, "private")
+		if err := row.Scan(&p.ID, &p.UserID, &p.GroupID, &p.Title, &p.Content, &p.MediaURL, &p.Privacy, &p.UpdatedAt); err != nil {
+			if err == sql.ErrNoRows {
+				continue
+			}
+		}
+		posts = append(posts, p)
+	}
+	tx.Commit()
+	return posts, nil
 }
 
+func GetPostIds(ctx context.Context, id string, tx *sql.Tx) ([]string, error) {
+	var accessiblePosts []string
+	query := `SELECT id
+	FROM posts p JOIN posts_audience pa ON p.id=pa.post_id 
+	WHERE pa.user_id=?`
 
-func GetPostIds(id string)[]string{
-	
+	rows, err := tx.QueryContext(ctx, query, id)
+	if err != nil {
+		if errors.Is(err, context.DeadlineExceeded) {
+			log.Println("Query Time Out")
+		}
+	}
+
+	for rows.Next() {
+		var postID string
+		if err := rows.Scan(&postID); err != nil {
+			return nil, fmt.Errorf("error querrying database")
+		}
+		accessiblePosts = append(accessiblePosts, postID)
+	}
+	return accessiblePosts, nil
+}
+
+func GetPeopleIFollowIDs(ctx context.Context, id string, tx *sql.Tx) ([]string, error) {
+	var peopleIFollow []string
+
+	query := `SELECT foloweeID FROM following WHERE followerID=?`
+
+	rows, err := tx.QueryContext(ctx, query, id)
+	if err != nil {
+		if errors.Is(err, context.DeadlineExceeded) {
+			log.Println("Query Time Out")
+		}
+	}
+
+	for rows.Next() {
+		var userID string
+		if err := rows.Scan(&userID); err != nil {
+			return nil, fmt.Errorf("error querrying database")
+		}
+		peopleIFollow = append(peopleIFollow, userID)
+	}
+	return peopleIFollow, nil
 }
