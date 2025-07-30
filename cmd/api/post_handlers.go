@@ -3,16 +3,18 @@ package main
 import (
 	"context"
 	"database/sql"
+	"encoding/json"
 	"errors"
 	"net/http"
 	"time"
+
 	"github.com/cliffdoyle/social-network/internal/models"
 	"github.com/cliffdoyle/social-network/internal/validator"
 )
 
 // createPostHandler handles POST /posts requests
 func (app *application) createPostHandler(w http.ResponseWriter, r *http.Request) {
-	//Maps to the incoming json from the client
+	// Maps to the incoming json from the client
 	var input models.PostCreateInput
 
 	err := app.readJSON(w, r, &input)
@@ -21,7 +23,7 @@ func (app *application) createPostHandler(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	//retrieve the userID from the request context
+	// retrieve the userID from the request context
 	authenticatedUser := r.Context().Value("user_id").(string)
 
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
@@ -35,17 +37,17 @@ func (app *application) createPostHandler(w http.ResponseWriter, r *http.Request
 			return
 		}
 		if errors.Is(err, sql.ErrNoRows) {
-			//record not found in the database
+			// record not found in the database
 			app.notFoundResponse(w, r)
 			return
 
 		}
-		//otherwise we return default error
+		// otherwise we return default error
 		app.serverErrorResponse(w, r, err)
 		return
 	}
 
-	//send data to client through json marshal
+	// send data to client through json marshal
 	err = app.writeJSON(w, http.StatusCreated, post)
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
@@ -54,10 +56,10 @@ func (app *application) createPostHandler(w http.ResponseWriter, r *http.Request
 
 // getPostHandler handles GET /posts/{id} requests
 func (app *application) getPostHandler(w http.ResponseWriter, r *http.Request) {
-	//read the postID from the request URL
+	// read the postID from the request URL
 	postID := app.readIDParam(r)
 
-	//context to determine maximum time requests take to fetch from db
+	// context to determine maximum time requests take to fetch from db
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 	post, err := app.postService.GetByID(ctx, postID)
@@ -70,33 +72,32 @@ func (app *application) getPostHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	//send data to client through json marshal
+	// send data to client through json marshal
 	err = app.writeJSON(w, http.StatusCreated, post)
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
 	}
 }
 
-//updatePostHandler handles PATCH /posts/{id} requests
-
+// updatePostHandler handles PATCH /posts/{id} requests
 func (app *application) updatePostHandler(w http.ResponseWriter, r *http.Request) {
-	//retrieve post id from request url
+	// retrieve post id from request url
 	postID := app.readIDParam(r)
 
-	//DTO to old post json from client temporarily
+	// DTO to old post json from client temporarily
 	var input models.PostUpdateInput
 
-	//read incoming json to input struct
+	// read incoming json to input struct
 	err := app.readJSON(w, r, &input)
 	if err != nil {
 		app.badRequestResponse(w, r, err)
 		return
 	}
-	//request context with timeout to determine time request takes
+	// request context with timeout to determine time request takes
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
-	//call the service layer to handle validation of the post to be updated
+	// call the service layer to handle validation of the post to be updated
 	// Your service layer checks if the user owns the post.
 	post, err := app.postService.Update(ctx, postID, input)
 	if err != nil {
@@ -112,26 +113,25 @@ func (app *application) updatePostHandler(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	//send data to client through json marshal
+	// send data to client through json marshal
 	err = app.writeJSON(w, http.StatusCreated, post)
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
 	}
-
 }
 
 // deletePostHandler handles DELETE /post/{id} requests
 func (app *application) deletePostHandler(w http.ResponseWriter, r *http.Request) {
-	//retrieve post id from request url
+	// retrieve post id from request url
 	postID := app.readIDParam(r)
 
-	//retrieve userID from request context
+	// retrieve userID from request context
 	authenticatedUser := r.Context().Value("user_id").(string)
 
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
-	//call the service layer that has logic for deleting post from database
+	// call the service layer that has logic for deleting post from database
 	err := app.postService.Delete(ctx, postID, authenticatedUser)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
@@ -150,17 +150,20 @@ func (app *application) deletePostHandler(w http.ResponseWriter, r *http.Request
 	w.WriteHeader(http.StatusNoContent)
 }
 
-func (app *application)PostsFeedByPrivacy(w http.ResponseWriter,r *http.Request){
-
-
-	userID:=r.Context().Value("user_id").(string)
+func (app *application) PostsFeedByPrivacy(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+	userID := r.Context().Value("user_id").(string)
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
-	publicPost,err:=app.postService.GetPosts(ctx,userID)
-	if err!=nil{
-
+	publicPost, err := app.postService.GetPosts(ctx, userID)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
 	}
-	
 
+	json.NewEncoder(w).Encode(publicPost)
 }
