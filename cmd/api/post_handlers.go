@@ -151,7 +151,7 @@ func (app *application) deletePostHandler(w http.ResponseWriter, r *http.Request
 }
 
 func (app *application)PostsFeedByPrivacy(w http.ResponseWriter,r *http.Request){
-	var allposts []*models.Post
+
 
 	userID:=r.Context().Value("user_id").(string)
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
@@ -161,18 +161,6 @@ func (app *application)PostsFeedByPrivacy(w http.ResponseWriter,r *http.Request)
 	if err!=nil{
 
 	}
-	// followingPosts,err:=app.postService.GetPostFromFollowing(ctx,userID)
-	// 	if err!=nil{
-
-	// }
-
-	// closeFriendPosts,err:=app.postService.GetPostsFromCloseFriend(ctx,userID)
-	// 	if err!=nil{
-
-	// }
-
-	// allposts=append(allposts, publicPost...)
-	// allposts=append(allposts,followingPosts...)
-	// allposts=append(allposts,closeFriendPosts...)
+	
 
 }
