@@ -46,13 +46,27 @@ func (s *postService) Create(ctx context.Context, input models.PostCreateInput, 
 	post := &models.Post{
 		ID:        uuid.NewString(), // Generates new unique ID for the post
 		UserID:    userID,
-		GroupID:   *input.GroupID,
 		Title:     *input.Title,
-		Content:   input.Content,
-		MediaURL:  input.MediaURL,
 		Privacy:   input.Privacy,
 		CreatedAt: time.Now(),
 		UpdatedAt: time.Now(),
+	}
+
+	// Safely assign values from the pointer fields
+	if input.GroupID != nil {
+		post.GroupID = *input.GroupID
+	}
+	if input.Title != nil {
+		post.Title = *input.Title
+	}
+	if input.Content != nil {
+		post.Content = input.Content
+	}
+	if input.MediaURL != nil {
+		post.MediaURL = input.MediaURL
+	}
+	if input.MediaType != nil {
+		post.MediaType = input.MediaType
 	}
 
 	// Call the repository to insert the post into the database.
@@ -150,4 +164,12 @@ func (s *postService) Delete(ctx context.Context, postID string, userID string) 
 
 	//If the user is the owner, call the repository to delete it from db
 	return s.repo.Delete(ctx,postID)
+}
+
+func (p *postService) GetPosts(ctx context.Context, id string) ([]*models.Post, error) {
+	posts, err := p.repo.GetAllPosts(ctx, id)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get all posts with error %s", err)
+	}
+	return posts, nil
 }

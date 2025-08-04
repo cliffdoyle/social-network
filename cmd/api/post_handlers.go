@@ -13,7 +13,12 @@ import (
 
 // createPostHandler handles POST /posts requests
 func (app *application) createPostHandler(w http.ResponseWriter, r *http.Request) {
+<<<<<<< Updated upstream
 	//Maps to the incoming json from the client
+=======
+	
+	// Maps to the incoming json from the client
+>>>>>>> Stashed changes
 	var input models.PostCreateInput
 
 	err := app.readJSON(w, r, &input)
