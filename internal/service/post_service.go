@@ -176,11 +176,4 @@ func (p *postService) GetPosts(ctx context.Context, id string) ([]*models.Post, 
 	return posts, nil
 }
 
-func (p *postService) GetPosts(ctx context.Context, id string) ([]*models.Post, error) {
-	posts, err := p.repo.GetAllPosts(ctx, id)
-	if err != nil {
-		return nil, fmt.Errorf("failed to get all posts with error %s", err)
-	}
-	return posts, nil
-}
 
