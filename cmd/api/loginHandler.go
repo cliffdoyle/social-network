@@ -10,14 +10,13 @@ import (
 )
 
 func (app *application) LoginHandler(w http.ResponseWriter, r *http.Request) {
-	// if r.Method != http.MethodPost {
-	// 	json.NewEncoder(w).Encode(map[string]any{
-	// 		"message": "invalid request",
-	// 		"code":    http.StatusMethodNotAllowed,
-	// 	})
-	// 	return
-	// }
-	fmt.Println("hre55")
+	if r.Method != http.MethodPost {
+		json.NewEncoder(w).Encode(map[string]any{
+			"message": "invalid request",
+			"code":    http.StatusMethodNotAllowed,
+		})
+		return
+	}
 
 	var loginDetails *models.LoginRequest
 	// err := json.NewDecoder(r.Body).Decode(&loginDetails)
@@ -57,11 +56,7 @@ func (app *application) LoginHandler(w http.ResponseWriter, r *http.Request) {
 		})
 		return
 	}
-	fmt.Println("user:", user)
-	ps := user.Password.Hash
-
-	fmt.Println("okay")
-	fmt.Println("password details:", ps)
+	
 	valid, err := user.Password.Matches(password)
 	if err != nil || !valid {
 		json.NewEncoder(w).Encode(map[string]any{
@@ -70,16 +65,11 @@ func (app *application) LoginHandler(w http.ResponseWriter, r *http.Request) {
 		})
 		return
 	}
-	// err = bcrypt.CompareHashAndPassword(ps, []byte(password))
-	// if err != nil {
-	// 	fmt.Println("Error bcrypt", err)
-	// 	return
-	// }
+	
+	app.GenerateSession(w, r, user.ID)
 
-	fmt.Println("okay2")
 	app.writeJSON(w, 200, map[string]any{
 		"success": "loggedin",
 	})
 
-	app.GenerateSession(w, *r, user.ID)
 }
