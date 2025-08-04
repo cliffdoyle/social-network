@@ -31,7 +31,7 @@ func (app *application) Authenticator(next http.Handler) http.Handler {
 	})
 }
 
-func (app *application) GenerateSession(w http.ResponseWriter, r http.Request, id string) {
+func (app *application) GenerateSession(w http.ResponseWriter, r *http.Request, id string) {
 	app.logger.Info("--- GENERATE SESSION CALLED for user ID:", id)
 	sessionID, err := app.sessionService.PersistSession(id)
 	if err != nil {
@@ -52,6 +52,7 @@ func (app *application) GenerateSession(w http.ResponseWriter, r http.Request, i
 	}
 
 	http.SetCookie(w, cookie)
+	
 	app.logger.Info("cookie set",sessionID)
 
 }
