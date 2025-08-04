@@ -48,13 +48,27 @@ func (s *postService) Create(ctx context.Context, input models.PostCreateInput, 
 	post := &models.Post{
 		ID:        uuid.NewString(), // Generates new unique ID for the post
 		UserID:    userID,
-		GroupID:   *input.GroupID,
 		Title:     *input.Title,
-		Content:   input.Content,
-		MediaURL:  input.MediaURL,
 		Privacy:   input.Privacy,
 		CreatedAt: time.Now(),
 		UpdatedAt: time.Now(),
+	}
+
+	// Safely assign values from the pointer fields
+	if input.GroupID != nil {
+		post.GroupID = *input.GroupID
+	}
+	if input.Title != nil {
+		post.Title = *input.Title
+	}
+	if input.Content != nil {
+		post.Content = input.Content
+	}
+	if input.MediaURL != nil {
+		post.MediaURL = input.MediaURL
+	}
+	if input.MediaType != nil {
+		post.MediaType = input.MediaType
 	}
 
 	// Call the repository to insert the post into the database.
@@ -62,7 +76,7 @@ func (s *postService) Create(ctx context.Context, input models.PostCreateInput, 
 	err := s.repo.Insert(ctx, post, input.Audience)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return nil, err // the handler to inspect and decide which HTTP status code to return
+			return nil, err //the handler to inspect and decide which HTTP status code to return
 		}
 		return nil, err
 	}
@@ -139,19 +153,27 @@ func (s *postService) Update(ctx context.Context, postID string, input models.Po
 
 // Delete handles deleting a post after checking permissions
 func (s *postService) Delete(ctx context.Context, postID string, userID string) error {
-	// Fetch the post to find out who its owner is
+	//Fetch the post to find out who its owner is
 	post, err := s.repo.Get(ctx, postID)
 	if err != nil {
 		return err
 	}
 
-	// Perform permission check to ensure the post belongs to the user
+	//Perform permission check to ensure the post belongs to the user
 	if post.UserID != userID {
 		return errors.New("forbidden: user is not the owner of the post")
 	}
 
-	// If the user is the owner, call the repository to delete it from db
+	//If the user is the owner, call the repository to delete it from db
 	return s.repo.Delete(ctx, postID)
+}
+
+func (p *postService) GetPosts(ctx context.Context, id string) ([]*models.Post, error) {
+	posts, err := p.repo.GetAllPosts(ctx, id)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get all posts with error %s", err)
+	}
+	return posts, nil
 }
 
 func (p *postService) GetPosts(ctx context.Context, id string) ([]*models.Post, error) {

@@ -1,7 +1,7 @@
 CREATE TABLE IF NOT EXISTS posts (
     id TEXT PRIMARY KEY,
     user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-    group_id TEXT REFERENCES groups(id) ON DELETE SET NULL,
+    -- group_id TEXT REFERENCES groups(id) ON DELETE SET NULL,
     title TEXT,
     content TEXT,
     media_url TEXT,

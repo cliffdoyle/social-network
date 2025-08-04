@@ -51,13 +51,12 @@ func (m *PostsModel) Insert(ctx context.Context, post *models.Post, audience []s
 
 	// Prepare the SQL for inserting into the `posts` table
 	query := `
-	INSERT INTO posts (id,user_id,group_id,title,content,media_url,media_type,privacy)
+	INSERT INTO posts (id,user_id,title,content,media_url,media_type,privacy)
 	VALUES(?,?,?,?,?,?,?)`
 
 	args := []any{
 		post.ID,
 		post.UserID,
-		post.GroupID,
 		post.Title,
 		post.Content,
 		post.MediaURL,

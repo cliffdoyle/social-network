@@ -1,7 +1,5 @@
 package main
 
-import "fmt"
-
 type Validator struct {
 	Errors map[string]string
 }
@@ -29,22 +27,22 @@ func (v *Validator) Check(ok bool, key, message string) {
 	}
 }
 
-func main() {
+// func main() {
 
-	// error := map[string]string{"error": "test1"}
-	// error2 := map[string]string{"error2": "test2"}
+// 	// error := map[string]string{"error": "test1"}
+// 	// error2 := map[string]string{"error2": "test2"}
 
-	validation:=New()
+// 	validation:=New()
 
-	// struc1 := Validator{
-	// 	Errors: error,
-	// }
+// 	// struc1 := Validator{
+// 	// 	Errors: error,
+// 	// }
 
-	// fmt.Println(struc1.Valid())
-	// fmt.Println(New())
+// 	// fmt.Println(struc1.Valid())
+// 	// fmt.Println(New())
 
-	validation.Check(1 ==9,"error","test1")
-	validation.Check(1==0,"error3","test1")
-	fmt.Println(validation.Errors)
+// 	validation.Check(1 ==9,"error","test1")
+// 	validation.Check(1==0,"error3","test1")
+// 	fmt.Println(validation.Errors)
 
-}
+// }
