@@ -287,24 +287,4 @@ ORDER BY
 	return posts, nil
 }
 
-// func GetPeopleIFollowIDs(ctx context.Context, id string, tx *sql.Tx) ([]string, error) {
-// 	var peopleIFollow []string
 
-// 	query := `SELECT foloweeID FROM following WHERE followerID=?`
-
-// 	rows, err := tx.QueryContext(ctx, query, id)
-// 	if err != nil {
-// 		if errors.Is(err, context.DeadlineExceeded) {
-// 			log.Println("Query Time Out")
-// 		}
-// 	}
-
-// 	for rows.Next() {
-// 		var userID string
-// 		if err := rows.Scan(&userID); err != nil {
-// 			return nil, fmt.Errorf("error querrying database")
-// 		}
-// 		peopleIFollow = append(peopleIFollow, userID)
-// 	}
-// 	return peopleIFollow, nil
-// }
