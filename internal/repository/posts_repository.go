@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"fmt"
 	"time"
 
 	"github.com/cliffdoyle/social-network/internal/database"
@@ -16,6 +17,7 @@ type PostRepository interface {
 	Get(ctx context.Context, id string) (*models.Post, error)
 	Update(ctx context.Context, post *models.Post, newAudience []string) error
 	Delete(ctx context.Context, id string) error
+	GetAllPosts(ctx context.Context, id string) ([]*models.Post, error)
 }
 
 // Define a PostModel struct type which wraps a sql.DB connection pool.
@@ -153,8 +155,8 @@ func (m *PostsModel) Update(ctx context.Context, post *models.Post, newAudience 
 		return err
 	}
 
-	//If no rows were affected we know that no records were affected in the database
-	//therefore none exixted
+	// If no rows were affected we know that no records were affected in the database
+	// therefore none exixted
 	rowsAffected, err := result.RowsAffected()
 	if err != nil {
 		return err
@@ -164,9 +166,9 @@ func (m *PostsModel) Update(ctx context.Context, post *models.Post, newAudience 
 		return ErrRecordNotFound
 	}
 
-	//Delete all old audience members for this post
-	//This runs regardless of the new privacy setting, ensuring we clean up
-	//if a post is changed from private to public
+	// Delete all old audience members for this post
+	// This runs regardless of the new privacy setting, ensuring we clean up
+	// if a post is changed from private to public
 	queryAudience := `DELETE FROM post_audience WHERE post_id=?`
 
 	_, err = tx.ExecContext(ctx, queryAudience, post.ID)
@@ -174,7 +176,7 @@ func (m *PostsModel) Update(ctx context.Context, post *models.Post, newAudience 
 		return err
 	}
 
-	//If the new privacy setting is "private", insert the new audience
+	// If the new privacy setting is "private", insert the new audience
 	if post.Privacy == models.PrivacyPrivate && len(newAudience) > 0 {
 		query := `INSERT INTO post_audience (post_id,user_id) VALUES (?,?)`
 		stmt, err := tx.PrepareContext(ctx, query)
@@ -191,7 +193,7 @@ func (m *PostsModel) Update(ctx context.Context, post *models.Post, newAudience 
 		}
 	}
 
-	//If all steps succeeded, commit the transaction
+	// If all steps succeeded, commit the transaction
 	return tx.Commit()
 
 	return nil
@@ -223,3 +225,64 @@ func (m *PostsModel) Delete(ctx context.Context, id string) error {
 
 	return nil
 }
+
+func (m *PostsModel) GetAllPosts(ctx context.Context, id string) ([]*models.Post, error) {
+	query := `SELECT
+    p.id,
+    p.user_id,
+    p.title,
+    p.content,
+    p.media_url,
+    p.privacy,
+    p.updated_at
+FROM
+    posts p
+WHERE
+
+    p.privacy = 'public'
+
+    OR (p.privacy = 'followers' AND EXISTS (
+        SELECT 1
+        FROM following f
+        WHERE f.follower_id = ? AND f.followee_id = p.user_id
+    ))
+
+    OR (p.privacy = 'private' AND EXISTS (
+        SELECT 1
+        FROM post_audience pa
+        WHERE pa.user_id = ? AND pa.post_id = p.id
+    ))
+ORDER BY
+    p.updated_at DESC;`
+
+	rows, err := m.DB.QueryContext(ctx, query, id, id)
+	if err != nil {
+		return nil, fmt.Errorf("error querying for visible posts: %w", err)
+	}
+	defer rows.Close()
+
+	var posts []*models.Post
+	for rows.Next() {
+		p:=&models.Post{}
+		if err := rows.Scan(
+			&p.ID,
+			&p.UserID,
+			&p.Title,
+			&p.Content,
+			&p.MediaURL,
+			&p.Privacy,
+			&p.UpdatedAt,
+		); err != nil {
+			return nil, fmt.Errorf("error scanning post row: %w", err)
+		}
+		posts = append(posts, p)
+	}
+
+	if err = rows.Err(); err != nil {
+		return nil, fmt.Errorf("error iterating post rows: %w", err)
+	}
+
+	return posts, nil
+}
+
+

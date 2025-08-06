@@ -122,6 +122,11 @@ type UserUpdateRequest struct {
 // 	Dislikes int
 
 // }
+type Followers struct {
+	ID         string `json:"id" db:"id"`
+	FolloweeID string`json:"followeeID"`
+	FollowerID string `json:"followerID"`
+}
 
 type LoginRequest struct {
 	Email    string `json:"email" validate:"required,email"`

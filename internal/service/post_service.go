@@ -20,6 +20,7 @@ type PostService interface {
 	GetByID(ctx context.Context, postID string) (*models.Post, error)
 	Update(ctx context.Context, postID string, input models.PostUpdateInput) (*models.Post, error)
 	Delete(ctx context.Context, postID string, userID string) error
+	GetPosts(ctx context.Context, id string) ([]*models.Post, error)
 }
 
 // postService struct implements the UserService interface
@@ -174,3 +175,5 @@ func (p *postService) GetPosts(ctx context.Context, id string) ([]*models.Post, 
 	}
 	return posts, nil
 }
+
+

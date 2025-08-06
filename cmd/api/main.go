@@ -10,8 +10,8 @@ import (
 	"github.com/cliffdoyle/social-network/internal/database"
 	"github.com/cliffdoyle/social-network/internal/repository"
 	"github.com/cliffdoyle/social-network/internal/service"
+	_ "github.com/golang-migrate/migrate/v4"
 	_ "github.com/mattn/go-sqlite3"
-	_"github.com/golang-migrate/migrate/v4"
 )
 
 // Config struct to hold the configuration settings for the application
@@ -35,7 +35,8 @@ type application struct {
 	// Add the user service
 	services       service.UserService
 	sessionService service.SessionService
-	postService   service.PostService
+	postService    service.PostService
+	followService  service.FollowService
 }
 
 func main() {
@@ -67,12 +68,14 @@ func main() {
 	// Initialize Repositories
 	userRepo := repository.NewUserRepository(db)
 	sessionsRepo := repository.NewSessionRepository(db)
-	postRepo:=repository.NewPosts(db)
+	postRepo := repository.NewPosts(db)
+	followRepo := repository.NewFollowingRepository(db)
 
 	// Initialize Services
 	userService := service.NewUserService(userRepo)
 	sessionsService := service.NewSessionService(sessionsRepo)
-	postService:=service.NewPostService(postRepo)
+	postService := service.NewPostService(postRepo)
+	followService := service.NewFollowService(followRepo)
 
 	// Inject dependencies into the application struct
 	app := &application{
@@ -82,9 +85,10 @@ func main() {
 		db: db,
 
 		// Inject the service
-		services: userService,
+		services:       userService,
 		sessionService: sessionsService,
-		postService: postService,
+		postService:    postService,
+		followService:  followService,
 	}
 
 	// Declare new servemux which dispatches requests to

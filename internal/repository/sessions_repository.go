@@ -43,12 +43,12 @@ func (r *sessionRepository) InsertSession(session *models.Sessions) (string, err
 func (r *sessionRepository) GetSessionID(id string) (*models.Sessions, error) {
 	query := `SELECT sessionID, userID, expires_at FROM Sessions WHERE sessionID=?`
 	row := r.DB.QueryRow(query, id)
-	var sess *models.Sessions
+	sess:= models.Sessions{}
 	err := row.Scan(&sess.SessionID, &sess.UserID, &sess.Expires)
 	if err != nil {
 		return nil, err
 	}
-	return sess, nil
+	return &sess, nil
 }
 
 func (r *sessionRepository) DeleteSessionFromDB(sessionID string) error {

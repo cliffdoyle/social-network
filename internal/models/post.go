@@ -63,7 +63,7 @@ func ValidatePost(v *validator.Validator, post *Post) {
 	// A post must have EITHER content OR a media URL, or both. It cannot be completely empty.
 	hasContent := post.Content != nil && *post.Content != ""
 	hasMedia := post.MediaURL != nil && *post.MediaURL != ""
-	v.Check(hasContent || hasMedia, "body", "post must include content or media")
+	v.Check(hasContent || hasMedia, "body", "post must include content and/or media")
 
 	// If media is provided, its format must be validated.
 	if hasMedia {
