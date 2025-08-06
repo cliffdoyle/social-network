@@ -17,7 +17,7 @@ func (app *application) Authenticator(next http.Handler) http.Handler {
 		session, err := app.sessionService.GetSessionFromDB(cookie.Value)
 		if session.Expires.Before(time.Now()) || err != nil {
 			http.SetCookie(w, &http.Cookie{
-				Name:    "session_id",
+				Name:    "sessionID",
 				Value:   "",
 				Path:    "/",
 				Expires: time.Unix(0, 0),
@@ -31,27 +31,33 @@ func (app *application) Authenticator(next http.Handler) http.Handler {
 	})
 }
 
-func (app *application) GenerateSession(w http.ResponseWriter, r http.Request, id string) {
+func (app *application) GenerateSession(w http.ResponseWriter, r *http.Request, id string) {
+	app.logger.Info("--- GENERATE SESSION CALLED for user ID:", id)
 	sessionID, err := app.sessionService.PersistSession(id)
 	if err != nil {
 		json.NewEncoder(w).Encode(map[string]any{
 			"message": "failed to save token",
 			"status":  http.StatusInternalServerError,
 		})
-		cookie := &http.Cookie{
-			Name:     "sessionID",
-			Value:    sessionID,
-			Path:     "/",
-			HttpOnly: true,
-			Expires:  time.Now().Add(24 * time.Hour),
-			SameSite: http.SameSiteDefaultMode,
-		}
-
-		http.SetCookie(w, cookie)
+		return
 	}
+	cookie := &http.Cookie{
+		Name:     "sessionID",
+		Value:    sessionID,
+		Path:     "/",
+		HttpOnly: true,
+		Expires:  time.Now().Add(24 * time.Hour),
+		SameSite: http.SameSiteLaxMode,
+		Secure:   false, 
+	}
+
+	http.SetCookie(w, cookie)
+	
+	app.logger.Info("cookie set",sessionID)
+
 }
 
 func (app *application) LogOut(r *http.Request) {
-	sessionID:=r.Context().Value("sessionID").(string)
+	sessionID := r.Context().Value("sessionID").(string)
 	app.sessionService.DeleteSession(sessionID)
 }
