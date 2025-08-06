@@ -230,7 +230,6 @@ func (m *PostsModel) GetAllPosts(ctx context.Context, id string) ([]*models.Post
 	query := `SELECT
     p.id,
     p.user_id,
-    p.group_id,
     p.title,
     p.content,
     p.media_url,
@@ -242,15 +241,15 @@ WHERE
 
     p.privacy = 'public'
 
-    OR (p.privacy = 'almost private' AND EXISTS (
+    OR (p.privacy = 'followers' AND EXISTS (
         SELECT 1
         FROM following f
-        WHERE f.followerID = ? AND f.followeeID = p.user_id
+        WHERE f.follower_id = ? AND f.followee_id = p.user_id
     ))
 
     OR (p.privacy = 'private' AND EXISTS (
         SELECT 1
-        FROM posts_audience pa
+        FROM post_audience pa
         WHERE pa.user_id = ? AND pa.post_id = p.id
     ))
 ORDER BY
@@ -268,7 +267,6 @@ ORDER BY
 		if err := rows.Scan(
 			&p.ID,
 			&p.UserID,
-			&p.GroupID,
 			&p.Title,
 			&p.Content,
 			&p.MediaURL,
