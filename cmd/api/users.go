@@ -45,7 +45,7 @@ func (app *application) registerUserHandler(w http.ResponseWriter, r *http.Reque
 func (app *application) Follow(w http.ResponseWriter, r *http.Request) {
 	ctx,cancel:=context.WithTimeout(context.Background(),3*time.Second)
     defer cancel()
-	me:=r.Context().Value("user_uuid").(string)
+	me:=r.Context().Value("user_id").(string)
 	followeeId:=app.readIDParam(r)
 	err:=app.followService.FollowUser(ctx,followeeId,me)
 	if err!=nil{
@@ -61,7 +61,7 @@ func (app *application) Follow(w http.ResponseWriter, r *http.Request) {
 func (app *application) Unfollow(w http.ResponseWriter, r *http.Request) {
 	ctx,cancel:=context.WithTimeout(context.Background(),3*time.Second)
     defer cancel()
-	me:=r.Context().Value("user_uuid").(string)
+	me:=r.Context().Value("user_id").(string)
 	followeeId:=app.readIDParam(r)
 	err:=app.followService.UnFollowUser(ctx,followeeId,me)
 	if err!=nil{
@@ -77,7 +77,7 @@ func (app *application) Unfollow(w http.ResponseWriter, r *http.Request) {
 func(app *application)Followers(w http.ResponseWriter, r *http.Request){
 	ctx,cancel:=context.WithTimeout(context.Background(),3*time.Second)
     defer cancel()
-	me:=r.Context().Value("user_uuid").(string)
+	me:=r.Context().Value("user_id").(string)
     followers,err:=app.followService.ShowFollowers(ctx,me)
 	if err!=nil{
 			err = app.writeJSON(w, http.StatusInternalServerError, map[string]any{
@@ -96,7 +96,7 @@ func(app *application)Followers(w http.ResponseWriter, r *http.Request){
 func(app *application)Following(w http.ResponseWriter, r *http.Request){
 	ctx,cancel:=context.WithTimeout(context.Background(),3*time.Second)
     defer cancel()
-	me:=r.Context().Value("user_uuid").(string)
+	me:=r.Context().Value("user_id").(string)
     following,err:=app.followService.ShowPeopleIFollow(ctx,me)
 	if err!=nil{
 			err = app.writeJSON(w, http.StatusInternalServerError, map[string]any{
