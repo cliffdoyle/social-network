@@ -101,7 +101,7 @@ func (app *application) updatePostHandler(w http.ResponseWriter, r *http.Request
 	// Your service layer checks if the user owns the post.
 	post, err := app.postService.Update(ctx, postID, input)
 	if err != nil {
-		var validationErr validator.ValidationError
+		var validationErr *validator.ValidationError
 		if errors.Is(err, sql.ErrNoRows) {
 			app.notFoundResponse(w, r)
 			return
