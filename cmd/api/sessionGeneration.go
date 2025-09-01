@@ -32,7 +32,7 @@ func (app *application) Authenticator(next http.Handler) http.Handler {
 }
 
 func (app *application) GenerateSession(w http.ResponseWriter, r *http.Request, id string) {
-	app.logger.Info("--- GENERATE SESSION CALLED for user ID:", id)
+	app.logger.Info("Session generation", "user_id", id)
 	sessionID, err := app.sessionService.PersistSession(id)
 	if err != nil {
 		json.NewEncoder(w).Encode(map[string]any{
@@ -53,7 +53,7 @@ func (app *application) GenerateSession(w http.ResponseWriter, r *http.Request, 
 
 	http.SetCookie(w, cookie)
 	
-	app.logger.Info("cookie set",sessionID)
+	app.logger.Info("Cookie set", "sessionID", sessionID)
 
 }
 
