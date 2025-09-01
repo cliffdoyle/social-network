@@ -22,5 +22,8 @@ func (app *application) routes() http.Handler {
 	router.Handler(http.MethodGet, "/posts", app.Authenticator(http.HandlerFunc(app.PostsFeedByPrivacy)))
 	router.Handler(http.MethodPatch, "/update-post/:id", app.Authenticator(http.HandlerFunc(app.updatePostHandler)))
 	router.Handler(http.MethodDelete, "/delete-post/:id", app.Authenticator(http.HandlerFunc(app.deletePostHandler)))
+	// Reaction endpoints
+	router.Handler(http.MethodPost, "/api/posts/reactions", app.Authenticator(http.HandlerFunc(app.reactionHandler.ReactToPost)))
+	router.Handler(http.MethodPost, "/api/comments/reactions", app.Authenticator(http.HandlerFunc(app.reactionHandler.ReactToComment)))
 	return app.rateLimit(router)
 }
