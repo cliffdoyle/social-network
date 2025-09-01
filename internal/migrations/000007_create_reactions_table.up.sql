@@ -1,0 +1,20 @@
+-- +migrate Up
+CREATE TABLE reactions (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER NOT NULL,
+    post_id INTEGER,
+    comment_id INTEGER,
+    type TEXT NOT NULL CHECK(type IN ('like', 'dislike')),
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY(post_id) REFERENCES posts(id) ON DELETE CASCADE,
+    -- If you have a comments table, uncomment the next line
+    -- FOREIGN KEY(comment_id) REFERENCES comments(id) ON DELETE CASCADE
+    CHECK (
+        (post_id IS NOT NULL AND comment_id IS NULL) OR
+        (post_id IS NULL AND comment_id IS NOT NULL)
+    )
+);
+
+-- +migrate Down
+DROP TABLE IF EXISTS reactions;
