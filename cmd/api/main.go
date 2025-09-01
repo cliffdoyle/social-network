@@ -37,6 +37,8 @@ type application struct {
 	sessionService service.SessionService
 	postService    service.PostService
 	followService  service.FollowService
+
+	reactionHandler *ReactionHandler
 }
 
 func main() {
@@ -77,6 +79,11 @@ func main() {
 	postService := service.NewPostService(postRepo)
 	followService := service.NewFollowService(followRepo)
 
+	// Initialize Reaction Service and Handler
+	reactionRepo := repository.NewReactionRepository(db.DB)
+	reactionService := service.NewReactionService(reactionRepo)
+	reactionHandler := NewReactionHandler(reactionService)
+
 	// Inject dependencies into the application struct
 	app := &application{
 		config: cfg,
@@ -85,10 +92,11 @@ func main() {
 		db: db,
 
 		// Inject the service
-		services:       userService,
-		sessionService: sessionsService,
-		postService:    postService,
-		followService:  followService,
+		services:        userService,
+		sessionService:  sessionsService,
+		postService:     postService,
+		followService:   followService,
+		reactionHandler: reactionHandler,
 	}
 
 	// Declare new servemux which dispatches requests to
